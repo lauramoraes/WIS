@@ -1,0 +1,149 @@
+Warning in <TUnixSystem::SetDisplay>: DISPLAY not set, setting it to 201009197158.user.veloxzone.com.br:0.0
+rfio:/castor/cern.ch/user/t/tilebeam/commissioning/tiletb_60700_CIS.0.root
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet type="text/css" href="blank.css" ?>
+<analysis>
+	<macroName>Pulse Height</macroName>
+	<parameters>
+		<parameter>
+			<title>Run Number</title>
+			<value>60700</value>
+		</parameter>
+		<parameter>
+			<title>Number of Events</title>
+			<value>35198</value>
+		</parameter>
+	</parameters>
+	<results>
+		<title></title>
+		<result type="plot">
+			<title>Module LBA41 High Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA41/r60700_LBA41_hi_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA41 Low Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA41/r60700_LBA41_lo_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA42 High Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA42/r60700_LBA42_hi_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA42 Low Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA42/r60700_LBA42_lo_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA43 High Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA43/r60700_LBA43_hi_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA43 Low Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA43/r60700_LBA43_lo_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA44 High Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA44/r60700_LBA44_hi_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA44 Low Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA44/r60700_LBA44_lo_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA45 High Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA45/r60700_LBA45_hi_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA45 Low Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA45/r60700_LBA45_lo_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA46 High Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA46/r60700_LBA46_hi_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA46 Low Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA46/r60700_LBA46_lo_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA47 High Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA47/r60700_LBA47_hi_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA47 Low Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA47/r60700_LBA47_lo_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA48 High Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA48/r60700_LBA48_hi_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA48 Low Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA48/r60700_LBA48_lo_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA49 High Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA49/r60700_LBA49_hi_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA49 Low Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA49/r60700_LBA49_lo_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA50 High Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA50/r60700_LBA50_hi_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA50 Low Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA50/r60700_LBA50_lo_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA51 High Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA51/r60700_LBA51_hi_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA51 Low Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA51/r60700_LBA51_lo_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA52 High Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA52/r60700_LBA52_hi_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA52 Low Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA52/r60700_LBA52_lo_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA53 High Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA53/r60700_LBA53_hi_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA53 Low Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA53/r60700_LBA53_lo_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA54 High Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA54/r60700_LBA54_hi_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA54 Low Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA54/r60700_LBA54_lo_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA55 High Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA55/r60700_LBA55_hi_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA55 Low Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA55/r60700_LBA55_lo_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA56 High Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA56/r60700_LBA56_hi_PulseHeight.png</fileName>
+		</result>
+		<result type="plot">
+			<title>Module LBA56 Low Gain:</title>
+			<fileName>http://tcws.web.cern.ch/tcws/WIS/results/team5/CIS/LBA56/r60700_LBA56_lo_PulseHeight.png</fileName>
+		</result>
+	</results>
+</analysis>
+

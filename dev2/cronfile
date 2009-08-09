@@ -1,0 +1,2 @@
+0 * * * * /home/httpd/html/tile/info/lps/WIS/dev/copyFromCastor &
+

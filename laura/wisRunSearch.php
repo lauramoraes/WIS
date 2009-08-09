@@ -1,0 +1,400 @@
+<html>
+
+<head>
+	<title>TileCal Commissioning Offline Shifts</title>
+	<link href="./css/standard.css" type="text/css" rel="stylesheet" />
+	<script language="JavaScript" src="wisRunSelectionScript.js"></script>
+	<!--<script language="JavaScript" src="createIFrame.js"></script>-->
+	<script type="text/javascript">
+		function arrangeValues()
+		{
+			var run1=parseInt(document.myForm.run.value);
+			var run2=parseInt(document.myForm.run2.value);
+
+			var month=adjustDate(document.myForm.month.value);
+			var day=adjustDate(document.myForm.rday.value);
+
+			var month2=adjustDate(document.myForm.month2.value);
+			var day2=adjustDate(document.myForm.rday2.value);
+
+			var date2=document.myForm.year2.value+month2+day2;
+			var date=document.myForm.year.value+month+day;
+			document.myForm.exp_run.value = document.myForm.opr_run.value.concat(document.myForm.run.value);
+			document.myForm.ex2_run.value = document.myForm.opr_run2.value.concat(document.myForm.run2.value);
+			document.myForm.exp_date.value = document.myForm.opr_date.value.concat(date);
+			document.myForm.ex2_date.value = document.myForm.opr_date2.value.concat(date2);
+			return compareAll(date, date2, run1, run2);
+		}
+	</script>
+<script type="text/javascript">
+function resetValues()
+{
+	document.myForm.reset();
+	today();
+}
+
+function today()
+{
+	var today=new Date();
+	document.myForm.rday2.value=today.getDate();
+	document.myForm.month2.value=today.getMonth()+1;
+	document.myForm.year2.value=today.getFullYear();
+}
+
+
+function verifDate(date)
+{
+	var year="";
+	var month="";
+	var day="";
+	year+=date.charAt(0);
+	year+=date.charAt(1);
+	year+=date.charAt(2);
+	year+=date.charAt(3);
+
+	month+=date.charAt(4);
+	month+=date.charAt(5);
+
+	day+=date.charAt(6);
+	day+=date.charAt(7);
+
+	var leap=0;
+            switch (month)
+            {
+                case '01':
+                case '03':
+                case '05':
+                case '07':
+                case '08':
+                case '10':
+                case '12':
+                    if  ((day <= 31) && (day >= 1))
+                    {
+                        return true;
+                    }
+                    break
+
+                case '04':
+                case '06':
+                case '09':
+                case '11':
+                    if  ((day <= 30) && (day >= 1))
+                    {
+                        return true;
+                    }
+                    break
+                case '02':
+
+                    if ((year % 4 == 0) || (year % 100 == 0) || (year % 400 == 0))
+                    {
+                        leap = 1;
+                    }
+                    if ((leap == 1) && (day <= 29) && (day>=1))
+                    {
+                        return true;
+                    }
+                    if ((leap != 1) && (day <= 28) && (day>=1))
+                    {
+                        return true;
+                    }
+                    break
+            }
+	var date=day+"/"+month+"/"+year;
+	alert(date+" is not a valid date.");
+	return false;
+}
+
+function emptyFields()
+{
+	if (
+	((document.myForm.run.value=="" || document.myForm.run2.value=="") ||
+	(document.myForm.month.value=="" || document.myForm.rday.value=="") )||
+	((document.myForm.month2.value=="" || document.myForm.rday2.value=="") ||
+	(document.myForm.year2.value=="" || document.myForm.year.value=="")) )
+	{
+		alert("There are one or more empty fields.");
+		return false;
+	}
+	return true;
+
+}
+
+function adjustDate(date)
+{
+	var ret_date="";
+
+	if (date.length==1)
+	{
+	ret_date+="0";
+	ret_date+=date;
+	}
+	else {ret_date=date; }
+	return ret_date;
+}
+//Compare dates to make sure from is sooner than from
+function compareDates(date1, date2){
+//date format: YYYYMMDD
+	if(date2<=date1 && (document.myForm.opr_date.value==">=" || document.myForm.opr_date.value==">") && (document.myForm.opr_date2.value=="<=" || document.myForm.opr_date2.value=="<") )
+	{
+		alert("The search cannot proceed with the given dates. Correct the dates or the operators.\nHint: The upper date is working as the starting point, and the lower date as the finish.");
+		return false;
+	}
+	if(date1<=date2 && (document.myForm.opr_date.value=="<=" || document.myForm.opr_date.value=="<") && (document.myForm.opr_date2.value==">=" || document.myForm.opr_date2.value==">") )
+	{
+		alert("The search cannot proceed with the given dates. Correct the dates or the operators.\nHint: The lower date is working as the starting point, and the upper date as the finish.");
+		return false;
+	}
+	return true;
+}
+
+function compareRuns(run1, run2){
+	if(run2<=run1 && (document.myForm.opr_run.value==">=" || document.myForm.opr_run.value==">") && (document.myForm.opr_run2.value=="<=" || document.myForm.opr_run2.value=="<") )
+	{
+		alert("The search cannot proceed with the given runs. Correct the runs or the operators.\nHint: The upper run is working as the starting point, and the lower run as the finish.");
+		return false;
+	}
+	if(run1<=run2 && (document.myForm.opr_run.value=="<=" || document.myForm.opr_run.value=="<") && (document.myForm.opr_run2.value==">=" || document.myForm.opr_run2.value==">") )
+	{
+		alert("The search cannot proceed with the given runs. Correct the runs or the operators.\nHint: The lower run is working as the starting point, and the upper run as the finish.");
+		return false;
+	}
+	return true;
+}
+
+function compareAll(date1, date2, run1, run2)
+{
+	if (emptyFields() && verifDate(date1) && verifDate(date2) && compareDates(date1, date2) && compareRuns(run1, run2))
+	{
+		return true;
+	}
+	return false;
+}
+
+</script>
+
+
+
+
+</head>
+
+<body>
+
+	<!-- Top bar -->
+	<div id="top-bar">
+		[ <a href="http://tileinfo.web.cern.ch/tileinfo/lps/WIS/hp/">Project Home Page</a> ]&nbsp;.:.&nbsp;
+		[ <a href="http://www.cern.ch/">CERN</a> ]&nbsp;.:.&nbsp;
+		[ <a href="http://atlas.web.cern.ch/">ATLAS</a> ]&nbsp;.:.&nbsp;
+		[ <a href="http://atlas.web.cern.ch/Atlas/SUB_DETECTORS/TILE/tilecal.html">Tile Calorimeter</a> ]&nbsp;.:.&nbsp;
+		[ <a href="http://www.ufrj.br">Universidade Federal do Rio de Janeiro</a> ]&nbsp;
+	</div>
+	<!-- /Top bar -->
+
+	<!-- Header -->
+	<div id="header">
+		<h1>TileCal Commissioning Offline Shifts</h1>
+	</div>
+	<!-- /Header -->
+
+
+	<!-- Main Container -->
+	<div id="main-container">
+
+		<!-- Menu --><!--
+		<div id="menu">
+			<div id="menu-item" class="current">Reconstruction</div>
+			<div id="menu-item">Analysis</div>
+		</div>
+		--><!-- /Menu -->
+
+		<!-- Contents -->
+		<div id="contents">
+		<!--<a href="javascript:parent.script.newFrame('macros.xml');">test1</a>
+		<a onclick="return callToServer();" href="blank.html">test2</a>-->
+		<h2>Commissioning Runs</h2>
+		<font size="+1">Use this form to search for more runs.</font><br />
+
+
+<font size=+1>Q</font>uery:
+<i>set start and stop run number, dates, run type and setup, press <b>submit</b> button!</i>
+
+<form name="myForm" action="wisRunSelection.php" method="post" onSubmit="return arrangeValues();">
+
+<input type="hidden" name="query" value="query" />
+<input name="exp_run"  type="hidden" size="12" value="" />
+<input name="exp_date" type="hidden" size="12" value="" />
+<input name="ex2_run"  type="hidden" size="12" value="" />
+<input name="ex2_date" type="hidden" size="12" value="" />
+
+<table cellspacing="2">
+
+<tr>
+<td colspan="5"></td>
+<td>year</td><td>month</td><td>day</td>
+</tr>
+
+<tr>
+<td>run</td>
+<td><select name="opr_run">
+	<option value="=">=</option>
+	<option value="&gt;">&gt;</option>
+	<option value="&lt;">&lt;</option>
+	<option value="&gt;=" selected>&gt;=</option>
+	<option value="&lt;=">&lt;=</option>
+	<!--<option>contains</option>-->
+</select></td>
+<?php
+		$con = mysql_connect("pcata007","reader","")
+			or die("cannot connect to database server pcata007 :(");
+		$select = "SELECT run FROM comminfo ORDER BY run ASC";
+		mysql_select_db("tile", $con);
+		$res = mysql_query($select, $con)
+			or die("query failed :(");
+		$row=mysql_fetch_array($res, MYSQL_BOTH);
+		echo "<td><input name=\"run\" type=\"text\" size=\"12\" value=\"$row[0]\"></td>";
+?>
+
+<td>date</td>
+<td><select name="opr_date">
+        <option value="=">=</option>
+        <option value="&gt;">&gt;</option>
+        <option value="&lt;">&lt;</option>
+        <option value="&gt;=" selected>&gt;=</option>
+	<option value="&lt;=">&lt;=</option>
+        <!--<option>contains</option>-->
+</select></td>
+<?php
+		$con = mysql_connect("pcata007","reader","")
+			or die("cannot connect to database server pcata007 :(");
+		$select = "SELECT DATE_FORMAT(date, '%Y'), DATE_FORMAT(date, '%m'), DATE_FORMAT(date, '%d')  FROM comminfo WHERE events<>0 ORDER BY date ASC";
+		mysql_select_db("tile", $con);
+		$res = mysql_query($select, $con)
+			or die("query failed :(");
+		//mysql_data_seek($res, 9);
+		$row=mysql_fetch_array($res, MYSQL_BOTH);
+		$year="$row[0]";
+		$month="$row[1]";
+		$day="$row[2]";
+	echo "<td><input name=\"year\" type=\"text\" size=\"4\" value=\"$year\" maxlength=\"4\"></td>\n";
+	echo "<td><input name=\"month\" type=\"text\" size=\"2\" value=\"$month\" maxlength=\"2\"></td>\n";
+	echo "<td><input name=\"rday\" type=\"text\" size=\"2\" value=\"$day\" maxlength=\"2\">\n";
+	echo "</td><td>type</td><td>";
+
+  mysql_connect("pcata007","reader","")
+  or die("cannot connect to the database server :(");
+
+  $select = "select type from comminfo group by type order by run desc";
+  $res = mysql_db_query("tile",$select)
+  or die("query failed :(");
+
+  $nrows = mysql_num_rows($res);
+
+  echo "<SELECT NAME=exp_type>\n";
+  echo " <OPTION VALUE=\">=0\" SELECTED>All";
+  for ($i = 0; $i < ($nrows-1); $i++) {
+    $field = mysql_fetch_row($res);
+    echo "<OPTION>$field[0]\n";
+  }
+  echo "</SELECT>";
+  mysql_close();
+?>
+</td>
+</tr>
+<tr>
+<td>run</td>
+<td><select name="opr_run2">
+        <option value="=">=</option>
+        <option value="&gt;">&gt;</option>
+        <option value="&lt;">&lt;</option>
+        <option value="&gt;=">&gt;=</option>
+        <option value="&lt;=" selected>&lt;=</option>
+        <!--<option>contains</option>-->
+</select></td>
+<?php
+		$con = mysql_connect("pcata007","reader","")
+			or die("cannot connect to database server pcata007 :(");
+		$select = "SELECT run FROM comminfo ORDER BY run DESC";
+		mysql_select_db("tile", $con);
+		$res = mysql_query($select, $con)
+			or die("query failed :(");
+		$row=mysql_fetch_array($res, MYSQL_BOTH);
+		echo "<td><input name=\"run2\" type=\"text\" size=\"12\" value=\"$row[0]\"></td>";
+?>
+
+<td>date</td>
+<td><select name="opr_date2">
+        <option value="=">=</option>
+        <option value="&gt;">&gt;</option>
+        <option value="&lt;">&lt;</option>
+        <option value="&gt;=">&gt;=</option>
+        <option value="&lt;=" selected>&lt;=</option>
+        <!--<option>contains</option>-->
+</select></td>
+<td><input name="year2" type="text" size="4" value=""  maxlength="4"></td>
+<td><input name="month2" type="text" size="2" value="" maxlength="2"></td>
+<td><input name="rday2" type="text" size="2" value="" maxlength="2"></td>
+<script>today();</script>
+<td>setup</td><td>
+
+<?php
+  mysql_connect("pcata007","reader","")
+  or die("cannot connect to the database server :(");
+
+  $select = "select setup from comminfo group by setup order by run desc";
+  $res = mysql_db_query("tile",$select)
+  or die("query failed :(");
+
+  $nrows = mysql_num_rows($res);
+
+  echo "<SELECT NAME=exp_setup>\n";
+  echo " <OPTION VALUE=\">=0\" SELECTED>All";
+  for ($i = 0; $i < ($nrows-1); $i++) {
+    $field = mysql_fetch_row($res);
+    echo "<OPTION>$field[0]\n";
+  }
+  echo "</SELECT>";
+
+  mysql_close();
+?>
+</td>
+</tr>
+</table>
+<p>
+<br />
+show <select name="rows">
+     <option>5</option>
+     <option>10</option>
+     <option selected>25</option>
+     <option>50</option>
+     </select> rows/page
+
+and <input name="orderedby" type="hidden" value="date">
+arrange in
+  <select name="orderdir">
+      <option value="ASC">ascending</option>
+      <option value="DESC" selected>descending</option>
+  </select> order
+<p><br>
+<input type="submit" value="Submit">
+<input type="button" value="Reset" onClick="resetValues();">
+</form>
+
+
+		</div>
+		<!-- /Contents -->
+
+	</div>
+	<!-- /Main -->
+
+
+	<div id="footer">
+	&nbsp;Please <a href="mailto:Tile.Commissioning@cern.ch">send us</a> your comments and suggestions.
+	</div>
+	<!-- /Footer -->
+
+	<script language="JavaScript">
+	<?php echo "$script\n"; ?>
+	</script>
+
+</body>
+
+</html>

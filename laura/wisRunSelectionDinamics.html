@@ -1,0 +1,32 @@
+<html>
+
+<head>
+	<title>TileCal Commissioning Offline Shifts</title>
+	<script language="JavaScript">
+
+		function newFrame(url)
+		{
+			var frame = document.createElement('FRAME');
+			frame.setAttribute('noresize', '');
+			frame.setAttribute('src', url);
+			var frameset = document.getElementById('frameset');
+			var rows;
+			if (frameset.getAttribute('rows') == '')
+				rows = frameset.getAttribute('rows') + '10%';
+			else
+				rows = frameset.getAttribute('rows') + ',10%';
+			frameset.setAttribute('rows', rows);
+			alert(frameset.getAttribute('rows'));
+			frameset.appendChild(frame);
+		}
+
+	</script>
+
+</head>
+
+<frameset id="frameset" rows="10%,*"> <!-- frameborder="no" border="0" framespacing="0">-->
+	<frame src="nothing.html" scrolling="no" noresize />
+	<frame src="nothing.html" scrolling="no" noresize />
+</frameset>
+
+</html>

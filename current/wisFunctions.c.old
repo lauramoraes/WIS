@@ -1,0 +1,1121 @@
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/vfs.h>
+#include <shift.h>
+#include <dirent.h>
+#include <unistd.h>
+#include <time.h>
+#include <libgen.h>
+#include <signal.h>
+#include <ctype.h>
+
+#include "wisConsts.h"
+#include "wisFunctions.h"
+
+
+int wisDeleteFile(char *file)
+{
+    int retCode;
+    char command[MAX_LENGTH_COMMAND + 1];
+
+    setreuid(TILEBEAM_UID, TILEBEAM_UID);
+    setregid(TILEBEAM_GID, TILEBEAM_GID);
+
+    snprintf(command, SIZE, "rm -f %s", file);
+    //printf("%s", command);
+    retCode = system(command);
+    //printf("%d", retCode);
+
+    return(retCode);
+}
+
+/* ctbDeleteFiles(directory) */
+int ctbDeleteFiles(char *filesDirectory)
+{
+  time_t localTime;
+  DIR *directory;
+  struct dirent *entry;
+  struct stat fileInfo;
+  char filename[MAX_LENGTH_FILENAME + 1];
+  char command[MAX_LENGTH_COMMAND + 1];
+
+  /*
+  setreuid (TILEBEAM_UID, TILEBEAM_UID);
+  setregid (TILEBEAM_GID, TILEBEAM_GID);
+  setTilebeamEnvironment();
+  */
+  localTime = time (NULL);
+  //  printf ("Localtime: %lu<br>\n", localTime);
+  directory = opendir(filesDirectory);
+  if (directory == NULL)
+    return (ERROR_OPENING_DIRECTORY);
+
+  while ((entry = readdir(directory)) != NULL)
+  {
+    snprintf (filename, MAX_LENGTH_FILENAME, "%s/%s", filesDirectory, entry->d_name);
+    // printf ("%s<br>\n",filename);
+    if (stat (filename, &fileInfo) == 0)
+    {
+      // printf ("%s\n", ctime (&(fileInfo.st_mtime)));
+      if (fileInfo.st_mtime <= (localTime - EXPIRATION_TIME))
+      {
+        // printf ("Deleting %s\n", filename);
+        snprintf (command, MAX_LENGTH_COMMAND, "rm -f %s", filename);
+        system (command);
+      }
+    }
+    // else printf ("Error %d - %s<br>\n", errno, strerror (errno));
+    // printf ("<br>\n");
+  } 
+  closedir(directory);
+  return(OK);
+
+} /* ctbDeleteFiles(directory) */
+
+
+/* ctbFileExists(filename) */
+int ctbFileExists(char *filename)
+{
+   struct stat statbuf;
+   int retCode;
+
+   retCode = rfio_stat(filename, &statbuf);
+   if (retCode < 0)
+      return(1);
+
+  return (OK);
+
+} /* ctbFileExists(filename) */
+
+
+/*ctbStageFile(run, monthYear, onlineoffline)*/
+int ctbStageFile(char *filename)
+{
+  char command [SIZE];
+  int  retCode;
+
+  snprintf(command, SIZE, "/usr/local/bin/stagein -h stageatlas -M %s", filename);
+  retCode = system(command);
+
+  return(retCode);
+
+} /* ctbStageFile(filename) */
+
+
+/* ctbCopyFile(filename, copyTo) */
+int ctbCopyFile(char *filename, char *copyTo)
+{
+    FILE *fp = 0, *fout = 0;
+    int size, size_read, count = 0;
+    long long bufferSize = 0;
+    char path[SIZE], *buffer = 0;
+    struct stat statbuf;
+
+    if (strstr(filename, "/castor"))
+    {
+      //snprintf(command, MAX_LENGTH_COMMAND, "%s %s %s", RFCP, argv[1], argv[2]);//, basename(argv[1]));
+      snprintf(path, SIZE, "%s/%s", copyTo, basename(filename));
+      //printf("%s - %s<br>\n", argv[1], path);
+      rfio_stat(filename, &statbuf);
+      size = statbuf.st_size;
+      fp = rfio_fopen(filename, "r");
+      fout = rfio_fopen(path, "w");
+      bufferSize = 1024*1024*1024;
+      buffer = (char *) malloc(bufferSize);
+      while (buffer == 0 && bufferSize != 1) {
+         bufferSize = bufferSize/1024;
+         buffer = (char *) malloc(bufferSize);
+      }
+      while (!rfio_feof(fp) && fp != 0 && fout != 0) {
+         size_read = rfio_fread(buffer, 1, bufferSize, fp);
+         if (size_read > 0)
+            rfio_fwrite(buffer, 1, size_read, fout);
+
+         count += size_read;
+      }
+      printf("<input type=\"hidden\" name=\"filesize\" value=\"%d %d\">\n", count, size);
+      rfio_fclose(fp);
+      rfio_fclose(fout);
+    }
+    //else
+      //snprintf(command, MAX_LENGTH_COMMAND, "ln -s %s %s", argv[1], argv[2]);
+   //retCode = system(command);
+/*   if (retCode == 256)
+      exit(RFCP_256_ERROR);
+    else
+    if (retCode == 7168)
+      exit(RFCP_7168_ERROR);
+    else
+    if (retCode != 0)
+      exit(RFCP_ERROR);*/
+    //system(command);
+  return (OK);
+
+} /* ctbCopyFile(filename, copyTo) */
+
+
+/* ctbCompressFile(filename) */
+int ctbCompressFile(char *filename)
+{
+  char command [MAX_LENGTH_COMMAND + 1];
+  int retCode;
+
+  setreuid(TILEBEAM_UID, TILEBEAM_UID);
+  setregid(TILEBEAM_GID, TILEBEAM_GID);
+
+  snprintf(command, MAX_LENGTH_COMMAND, "gzip -c %s > %s.gz", filename, filename);
+  system(command);
+
+  snprintf (command, MAX_LENGTH_COMMAND, "chmod -x %s.gz", filename);
+  retCode = system (command);
+
+  return(retCode);
+} /* ctbCompressFile(filename) */
+
+
+
+/* ctbDecompressFile(filename) ************* DRAFT ************/
+int ctbDecompressFile(char *filename)
+{
+  char command [MAX_LENGTH_COMMAND + 1];
+  int retCode;
+
+  setreuid(TILEBEAM_UID, TILEBEAM_UID);
+  setregid(TILEBEAM_GID, TILEBEAM_GID);
+
+  snprintf(command, MAX_LENGTH_COMMAND, "gunzip %s", filename);
+  system(command);
+
+  filename[strlen(filename)-3] = '\0';
+  snprintf (command, MAX_LENGTH_COMMAND, "chmod -x %s", filename);
+  //retCode = system (command);
+
+  return(retCode);
+} /* ctbDecompressFile(filename) */
+
+
+/*tiletransfer_deleteOldestNtuples (ntupledirectory)*/
+int tiletransfer_deleteOldestNtuple (char *ntupledirectory)
+{
+
+  time_t oldest_mtime;
+  DIR *directory;
+  struct dirent *entry;
+  struct stat fileInfo;
+  char filename[MAX_LENGTH_FILENAME + 1];
+  char command[MAX_LENGTH_COMMAND + 1];
+  char oldestFilename[MAX_LENGTH_FILENAME + 1];
+
+  directory = opendir(ntupledirectory);
+  if (directory == NULL)
+    return(ERROR_OPENING_DIRECTORY);
+
+  oldest_mtime = time(NULL);
+  strcpy(oldestFilename, "");
+
+  while ((entry = readdir(directory)) != NULL)
+  {
+    snprintf(filename, MAX_LENGTH_FILENAME, "%s/%s", ntupledirectory, entry->d_name);
+    if (stat(filename, &fileInfo) == 0)
+    {
+      if (fileInfo.st_mtime < oldest_mtime)
+      {
+        oldest_mtime = fileInfo.st_mtime;
+        snprintf(oldestFilename, MAX_LENGTH_FILENAME, "%s", filename);
+      }
+    }
+  }
+  closedir (directory);
+
+  if (strlen(oldestFilename) > 0)
+  {
+    snprintf (command, MAX_LENGTH_COMMAND, "rm -f %s", oldestFilename);
+    system (command);
+  }
+  else
+    return(FILE_NOT_FOUND);
+
+  return (OK);
+
+} /*tiletransfer_deleteNtuples (ntupledirectory)*/
+
+
+int tiletransfer_existsDir(char *path)
+{
+  void *p;
+  int retCode;
+
+  p = rfio_opendir(path);
+
+  if (p == NULL) {
+    retCode = 0;
+  }
+  else {
+    if (rfio_readdir(p) == NULL)
+      retCode = 0;
+    else
+      retCode = 1;
+    rfio_closedir(p);
+  }
+  return(retCode);
+}
+
+void ctbSendEmailTo(char *to, char *from, char *mailSubject, char *textMailMessage, char *htmlMailMessage)
+{
+   FILE *p;
+
+   p = popen("/usr/sbin/sendmail -t","w");
+
+   fprintf(p, "From: %s\n", from);
+   fprintf(p, "To: %s\n", to);
+   fprintf(p, "Subject: %s\n", mailSubject);
+
+   fprintf(p, "MIME-Version: 1.0\n");
+   fprintf(p, "X-Mozilla-Status2: 00000000\n");
+   fprintf(p, "Content-Type: multipart/alternative;");
+   fprintf(p, "boundary=\"----=_NextPart_000_002C_01BFABBF.4A7D6BA0\"\n");
+   fprintf(p, "------=_NextPart_000_002C_01BFABBF.4A7D6BA0\n");
+   fprintf(p, "Content-Type: text/plain;");
+   fprintf(p, "charset=US-ASCII\n");
+   fprintf(p, "Content-Transfer-Encoding: 8bit\n\n");
+   fprintf(p, textMailMessage);
+   fprintf(p, "------=_NextPart_000_002C_01BFABBF.4A7D6BA0\n");
+   fprintf(p, "Content-Type: text/html;");
+   fprintf(p, "charset=US-ASCII\n");
+   fprintf(p, "Content-Transfer-Encoding: quoted-printable\n\n");
+   fprintf(p, htmlMailMessage);
+   fprintf(p, "\n");
+   fprintf(p, "------=_NextPart_000_002C_01BFABBF.4A7D6BA0--\n");
+
+   pclose(p);
+}
+
+void ctbTouchFile(char *filename)
+{
+   char command[SIZE];
+
+   snprintf(command, SIZE, "touch %s", filename);
+   system(command);
+}
+
+int ctbIsAllDigit(char *str)
+{
+    int i;
+
+    for (i = 0; i < strlen(str); i++)
+    {
+        if (!isdigit(str[i]))
+            return(0);
+    }
+    return(1);
+}
+
+/* atSearchFile(lfn, compress) */
+int atSearchFile(char *lfn, char *compress)
+{
+
+  FILE *file;
+  char command[MAX_LENGTH_COMMAND + 1];
+  char originalFilename[MAX_LENGTH_FILENAME + 1];
+  char compressedFilename[MAX_LENGTH_FILENAME + 1];
+  char workDirectory[MAX_LENGTH_FILENAME + 1];
+  int foundOriginal, foundCompressed;
+
+
+  snprintf(workDirectory, MAX_LENGTH_FILENAME, "%s", DC2_DIRECTORY);
+
+  snprintf(originalFilename, MAX_LENGTH_FILENAME, "%s/%s", workDirectory, lfn);
+  snprintf(compressedFilename, MAX_LENGTH_FILENAME, "%s/%s.gz", workDirectory, lfn);
+
+  // searchs for original file
+  if ((file = fopen(originalFilename, "r")) != NULL)
+  {
+    foundOriginal = 1;
+    fclose(file);
+  }
+  else
+    foundOriginal = 0;
+
+  // searchs for compressed file
+  if ((file = fopen(compressedFilename, "r")) != NULL)
+  {
+    foundCompressed = 1;
+    fclose(file);
+  }
+  else
+    foundCompressed = 0;
+
+  if (strcmp(compress, "yes") == 0 && !foundCompressed)
+  {
+    if (foundOriginal)
+    {
+      // comprime...
+      snprintf (command, MAX_LENGTH_COMMAND, "gzip -c %s/%s > %s/%s.gz", DC2_DIRECTORY, lfn, DC2_DIRECTORY, lfn);
+      printf("<ul>File %s found.</ul>\n", lfn);
+      printf("<ul>Compressing file %s...</ul>\n", lfn);
+      system(command);
+      snprintf(command, MAX_LENGTH_COMMAND, "chmod -x %s/%s.gz", DC2_DIRECTORY, lfn);
+      system(command);
+    }
+    else
+      return(FILE_NOT_FOUND);
+  }
+  else
+  if (strcmp(compress, "no") == 0 && !foundOriginal)
+  {
+    if (foundCompressed)
+    {
+      // descomprime...
+      snprintf (command, MAX_LENGTH_COMMAND, "gunzip -c %s/%s.gz > %s/%s", DC2_DIRECTORY, lfn, DC2_DIRECTORY, lfn);
+      printf("<ul>Compressed file %s found.</ul>\n", lfn);
+      printf("<ul>Decompressing file %s...</ul>\n", lfn);
+      system(command);
+      snprintf(command, MAX_LENGTH_COMMAND, "chmod -x %s/%s", DC2_DIRECTORY, lfn);
+      system(command);
+    }
+    else
+      return(FILE_NOT_FOUND);
+  }
+
+  bzero(command, sizeof(command));
+  // updates last modification date of the file...
+  if (strcmp(compress, "yes") == 0)
+    snprintf (command, MAX_LENGTH_COMMAND, "touch %s/%s.gz", DC2_DIRECTORY, lfn);
+  else
+    snprintf (command, MAX_LENGTH_COMMAND, "touch %s/%s", DC2_DIRECTORY, lfn);
+  system (command);
+
+  return (OK);
+
+} /* atSearchFile(lfn, compress) */
+
+
+//int lfnsize(char *lfn, char *filename)
+int lfnsize(char *lfn, char *filename)
+{
+	int retCode, conection_off, replicas_ok, retorno, contador, lenght;
+	char command[MAX_LENGTH_FILENAME + 1];
+	char linha[MAX_LENGTH_FILENAME + 1];
+	char size[MAX_LENGTH_FILENAME + 1];
+	div_t ret;
+	FILE *arquivo;
+
+	memset(command, '\0', MAX_LENGTH_FILENAME + 1);
+
+	conection_off = 0;
+	replicas_ok = 0;
+
+	snprintf (command, MAX_LENGTH_FILENAME, "%s search '%s' > %s", DQ, lfn, filename);
+	//printf("command = %s<br>\n", command);
+	retCode = system (command);
+
+	arquivo = fopen(filename, "r");
+	retorno = 0;
+	if (arquivo != NULL)
+	{
+		while((fgets(linha, 1023, arquivo)) != NULL)
+		{
+			if (!strcmp(linha, "Replicas:\n"))
+				replicas_ok = 1;
+
+			if (!strcmp(linha, "Connection failed\n"))
+				conection_off = 1;
+
+			//File size: 600093563
+			if (strncmp(linha, "File size:", 10) == 0)
+			{
+				lenght = strlen(linha);
+				//printf("linha = %s<br>\n", linha);
+				//printf("lenght = %i<br>\n", lenght);
+				for(contador = 11; contador < (lenght - 1); contador++)
+					size[contador - 11] = linha[contador];
+				size[contador - 10] = 0;
+				//printf("size = %s<br>\n", size);
+				retorno = atoi(size);
+				ret = div(retorno, 1024);
+				retorno = ret.quot;
+				//printf("retorno = %i<br>\n", retorno);
+			}
+
+			memset(linha, '\0', 1024);
+		} //while
+	}
+	else
+	{
+		printf("Erro na abertura do arquivo %s ou arquivo inexistente<br>\n", filename);
+		return(-1);
+	}
+	
+	fclose(arquivo);
+
+	if (conection_off)
+		return(-7);
+
+	if (!replicas_ok)
+		return(-2);
+
+	return(retorno);
+} //int lfnsize(char *lfn, char *filename)
+
+
+// int atDQGet(char *lfn, char *scratch, char *filename)
+int atDQGet(char *lfn, char *scratch, char *filename)
+{
+	int retCode, connection_off, replicas_ok, copy_done;
+	char command[MAX_LENGTH_STRING + 1];
+	char line[MAX_LENGTH_STRING + 1], currDirectory[MAX_LENGTH_FILENAME + 1];
+	FILE *file;
+
+	replicas_ok = 0;
+	connection_off = 0;
+	copy_done = 0;
+
+	// DQ search
+	snprintf (command, MAX_LENGTH_STRING, "%s search '%s' > %s", DQ, lfn, filename);
+	//printf("command = %s<br>\n", command);
+	retCode = system(command);
+	
+	/*printf("<pre>\n");
+	snprintf(command, MAX_LENGTH_STRING, "cat %s", filename);
+	system(command);
+	printf("</pre><br>\n");*/
+	
+	if ((file = fopen(filename, "r")) == NULL)
+	{
+		printf("Error while trying to open file %s.<br>\n", filename);
+		return(1);
+	}
+
+	while((fgets(line, MAX_LENGTH_STRING + 1, file)) != NULL)
+	{
+		if (strcmp(line, "Replicas:\n") == 0)
+			replicas_ok = 1;
+
+		if (strcmp(line, "Connection failed\n") == 0)
+			connection_off = 1;
+
+		memset(line, '\0', MAX_LENGTH_FILENAME + 1);
+	} //while
+	fclose(file);
+
+	if (connection_off)
+		return(7);
+
+	if (!replicas_ok)
+		return(2);
+
+	// DQ get
+	getcwd(currDirectory, MAX_LENGTH_FILENAME);
+	retCode = chdir(scratch);
+	memset(command, '\0', MAX_LENGTH_FILENAME + 1);
+	snprintf(command, MAX_LENGTH_FILENAME, "%s get '%s' --copy --auto > %s", DQ, lfn, filename);
+	printf("Executing Don Quijote to transfer file %s from Grid<br>\n", lfn);
+	printf("This can take several minutes...<br>\n");
+	fflush (stdout);
+	//printf("command = \"%s\"<br>\n", command);
+	retCode = system (command);
+
+	/*printf("<pre>\n");
+	snprintf(command, MAX_LENGTH_STRING, "cat %s", filename);
+	system(command);
+	printf("</pre><br>\n");*/
+
+	//if (retCode !=-1)
+	//printf("Copy done<br>\n");
+
+	if ((file = fopen(filename, "r")) == NULL)
+	{
+		printf("Error while trying to open file %s.<br>\n", filename);
+		return(1);
+	}
+
+	while ((fgets(line, 1023, file)) != NULL)
+	{
+		if (strstr(line, "ERROR:"))
+			printf("DQ RETURNED %s<br>\n", line);
+
+		if (strcmp(line, "Copy done\n") == 0)
+			copy_done = 1;
+		memset(line, '\0', MAX_LENGTH_FILENAME + 1);
+	} //while
+	fclose(file);
+	
+	if (!copy_done)
+		return(3);
+
+	retCode = chdir(currDirectory);
+	
+	return(OK);
+}
+// int atDQGet(char *lfn, char *scratch, char *filename)
+
+
+// int atMakeWgetScript()
+int atMakeWgetScript(char *lfn, char *fileType)
+{
+	int retCode;
+	unsigned long fileSize;
+	struct stat statbuf;
+	FILE *scriptfile;
+	char command[MAX_LENGTH_FILENAME + 1], filename[MAX_LENGTH_FILENAME + 1];
+	char string[MAX_LENGTH_STRING + 1];
+	
+	//check if the script is on scratch directory
+	snprintf(filename, MAX_LENGTH_FILENAME, "%s/%s/%s/%s.sh", TEMP_DIRECTORY, fileType, WGET, lfn);
+	//printf("%s<br>", filename);
+	if (ctbFileExists(filename) == OK)
+	{
+		printf("Script available in scratch directory.<br>\n");
+		ctbTouchFile(filename);
+		return(OK);
+	}
+
+	printf("Making wget script...<br>\n");
+
+	snprintf(command, MAX_LENGTH_FILENAME, "cp scriptmodel.sh %s", filename);
+	retCode = system(command);
+
+	scriptfile = fopen(filename, "a");
+	if (!scriptfile)
+	{
+		printf("Error trying to open script file.<br>\n");
+		return(1);
+	}
+
+	snprintf(filename, MAX_LENGTH_FILENAME, "%s/%s/%s", TEMP_DIRECTORY, fileType, lfn);
+	//printf("%s<br>", filename);
+	retCode = stat(filename, &statbuf);
+	fileSize = statbuf.st_size;
+	fileSize = (fileSize/1024) + 1;
+
+	//if [ $available -gt 600000 ]
+		//then
+		//grid-proxy-init
+	memset(string, '\0', MAX_LENGTH_STRING + 1);
+	snprintf (string, MAX_LENGTH_STRING, "if [ $available -gt %lu ]\n  then", fileSize);
+	fprintf(scriptfile, "%s\n", string);
+	
+	memset(string, '\0', MAX_LENGTH_STRING + 1);
+	snprintf(string, MAX_LENGTH_STRING, "  wget -c %s/%s/%s/%s", WEB_SERVER, TEMP_WEBDIR, fileType, lfn);
+	fprintf(scriptfile, "%s\n", string);
+
+	//else
+		//echo 'You do not have space disk for transfering x kb'
+	//fi
+	memset(string, '\0', MAX_LENGTH_STRING + 1);
+	snprintf (string, MAX_LENGTH_STRING, "else\n  echo 'You do not have space disk for transfering %lu kb'\nfi", fileSize);
+	fprintf(scriptfile, "%s\n", string);
+
+	fclose(scriptfile);
+
+	return(OK);
+}
+// int atMakeWgetScript(char *lfn, char *fileType)
+
+
+// int atMakeDQScript()
+int atMakeDQScript(char *lfn, char *fileType, char *tempFile)
+{
+	int retCode, fileSize;
+	FILE *scriptfile;
+	char command[MAX_LENGTH_FILENAME + 1], filename[MAX_LENGTH_FILENAME + 1];
+	char string[MAX_LENGTH_STRING + 1];
+
+	//check if the script is on scratch directory
+	snprintf(filename, MAX_LENGTH_FILENAME, "%s/%s/%s/%s.sh", TEMP_DIRECTORY, fileType, DQ_SCRIPTS, lfn);
+	//printf("%s<br>", filename);
+	if (ctbFileExists(filename) == OK)
+	{
+		printf("Script available in scratch directory.<br>\n");
+		ctbTouchFile(filename);
+		return(OK);
+	}
+
+	fileSize = lfnsize(lfn, tempFile);
+	if (fileSize < 0)
+		return((-1)*fileSize);
+
+	snprintf(command, MAX_LENGTH_FILENAME, "cp scriptmodel.sh %s", filename);
+	retCode = system(command);
+
+	if (fileSize == 0)
+		scriptfile = fopen(filename, "w");
+	else
+		scriptfile = fopen(filename, "a");
+	if (!scriptfile)
+	{
+		printf("Error trying to open script file.<br>\n");
+		return(1);
+	}
+
+	//if [ $available -gt 600000 ]
+		//then
+		//grid-proxy-init
+	memset(string, '\0', MAX_LENGTH_STRING + 1);
+	snprintf (string, MAX_LENGTH_FILENAME, "if [ $available -gt %d ]\n  then\n  grid-proxy-init", fileSize);
+	fprintf(scriptfile, "%s\n", string);
+
+	memset(string, '\0', MAX_LENGTH_STRING + 1);
+	snprintf(string, MAX_LENGTH_STRING, "  %s get '%s' --copy --auto", DQ, lfn);
+	fprintf(scriptfile, "%s\n", string);
+
+	//else
+		//echo 'You do not have space disk for transfering x kb'
+	//fi
+	memset(string, '\0', MAX_LENGTH_STRING + 1);
+	snprintf (string, MAX_LENGTH_STRING, "else\n  echo 'You do not have space disk for transfering %d kb'\nfi", fileSize);
+	fprintf(scriptfile, "%s\n", string);
+
+	fclose(scriptfile);
+
+	//printf("DONE!<br>\n");
+	if (fileSize == 0)
+		return(3);
+
+	return(OK);
+}
+// atMakeDQScript()
+
+
+
+/*dc2_dqget(char *lfn, char *compress, char *filename)*/
+int dc2_dqget(char *lfn, char *compress, char *filename)
+{
+  int retCode, replicas_ok, conection_off, copy_done;
+  char command[MAX_LENGTH_FILENAME + 1], linha[MAX_LENGTH_FILENAME + 1];
+  FILE *arquivo;
+
+  replicas_ok = 0;
+  conection_off = 0;
+  copy_done = 0;
+
+  setreuid(TILEBEAM_UID, TILEBEAM_UID);
+  setregid(TILEBEAM_GID, TILEBEAM_GID);
+
+  memset(command, '\0', MAX_LENGTH_FILENAME + 1);
+  snprintf (command, MAX_LENGTH_FILENAME, "%s search '%s' > %s", DQ, lfn, filename);
+  //printf("command = %s<br>\n", command);
+  retCode = system (command);
+
+  if ((arquivo=fopen(filename,"r"))!=NULL)
+      {
+	  while((fgets(linha, 1023, arquivo))!=NULL)
+		{
+        if (!strcmp(linha, "Replicas:\n"))
+		  replicas_ok = 1;
+
+        if (!strcmp(linha, "Connection failed\n"))
+		  conection_off = 1;
+		memset(linha, '\0', 1024);
+		}//while 
+      }
+  else
+      {
+      //printf("Erro na abertura do arquivo %s ou arquivo inexistente<br>\n", filename);
+      return(7);
+      }
+
+  fclose(arquivo);
+
+  if(conection_off == 1)
+	return(7);
+
+  if(replicas_ok != 1)
+	return(2);
+
+  memset(command, '\0', MAX_LENGTH_FILENAME + 1);
+  snprintf (command, MAX_LENGTH_FILENAME, "cd %s\n%s get '%s' --copy --auto > %s/%s", DC2_DIRECTORY, DQ, lfn, VDEV, filename);
+  //snprintf (command, MAX_LENGTH_FILENAME, "%s get '%s' --copy", DQ, lfn);
+  //printf("command = %s\n", command);
+  retCode = system (command);
+  //if (retCode !=-1)
+  //    printf("Copy done<br>\n");
+
+  if ((arquivo=fopen(filename,"r"))!=NULL)
+      {
+	  while((fgets(linha, 1023, arquivo))!=NULL)
+		{
+		if (!strcmp(linha, "Copy done\n"))
+		  copy_done = 1;
+
+		memset(linha, '\0', 1024);
+		}//while 
+	  }
+	else
+      {
+      //printf("Erro na abertura do arquivo %s ou arquivo inexistente<br>\n", filename);
+      return(7);
+      }
+	
+	fclose(arquivo);
+
+	if(copy_done != 1)
+		return(3);
+
+  if (!strcmp(compress, "yes"))
+    {
+    //printf("<br>Moving file %s to scratch directory<br>\n", argv[1]);
+    //memset(command, '\0', MAX_LENGTH_FILENAME + 1);
+    //snprintf (command, MAX_LENGTH_FILENAME, "mv %s %s", lfn, DC2_DIRECTORY);
+    //printf("Command move = %s<br>\n", command);
+    //retCode = system (command);
+    //printf("retcode move = %i<br><br>\n", retCode);
+
+	printf("<ul>Compressing file %s</ul>\n", lfn);
+	memset(command, '\0', MAX_LENGTH_FILENAME + 1);
+    snprintf (command, MAX_LENGTH_FILENAME, "gzip %s/%s", DC2_DIRECTORY, lfn);
+    //printf("<br><br>Command gzip = %s<br>\n", command);
+	retCode = system (command);
+	//printf("retcode gzip = %i<br><br>\n", retCode);	 
+    }
+
+  return(OK);
+}
+/*dc2_dqget(char *lfn, char *compress, char *filename)*/
+
+
+//int dc2_scriptmaker(char *lfn)
+int dc2_scriptmaker(char *lfn)
+{
+  int retCode;
+  char command[MAX_LENGTH_FILENAME + 1], filename[MAX_LENGTH_FILENAME + 1];
+  char stringdq[MAX_LENGTH_FILENAME + 1], filenamescratch[MAX_LENGTH_FILENAME + 1];
+  FILE *scriptfile;
+
+  setreuid(TILEBEAM_UID, TILEBEAM_UID);
+  setregid(TILEBEAM_GID, TILEBEAM_GID);
+
+  memset(command, '\0', MAX_LENGTH_FILENAME + 1);
+  memset(filename, '\0', MAX_LENGTH_FILENAME + 1);
+  memset(filenamescratch, '\0', MAX_LENGTH_FILENAME + 1);
+
+  strcpy(filenamescratch, DC2_SCRIPTS);
+  strcat(filenamescratch, lfn);
+  strcat(filenamescratch, ".sh");
+
+  strcpy(filename, lfn);
+  strcat(filename, ".sh");
+
+  //check if the script is on scratch directory
+  if ((scriptfile=fopen(filenamescratch,"r"))!=NULL)
+    {
+    printf("Script available in scratch.<br>\n");
+    fclose(scriptfile);
+        snprintf (command, MAX_LENGTH_COMMAND, "%s%s.sh", DC2_SCRIPTS, lfn);
+        ctbTouchFile(command);
+    return(OK);
+    }
+  else
+    {
+        snprintf (command, MAX_LENGTH_FILENAME, "cp scriptmodel.sh %s", filename);
+        //printf("command = %s\n", command);
+    retCode = system (command);
+
+        if ((scriptfile=fopen(filename,"a"))==NULL)
+      {
+      printf("Erro na abertura do arquivo %s ou arquivo inexistente.\n", filename);
+      return(2);
+      }
+
+        snprintf (stringdq, MAX_LENGTH_FILENAME, "%s get '%s' --copy", DQ, lfn);
+        fprintf(scriptfile, "%s\n", stringdq);
+        fclose(scriptfile);
+
+        memset(command, '\0', MAX_LENGTH_FILENAME + 1);
+        snprintf (command, MAX_LENGTH_FILENAME, "mv %s %s", filename, DC2_SCRIPTS);
+        //printf("Command move = %s<br>\n", command);
+    retCode = system (command);
+
+    return(OK);
+        }
+}
+//int dc2_scriptmaker(char *lfn)
+
+//int dc2_wgetscriptmaker(char *lfn, char *link, , char *filenamedq)
+int dc2_wgetscriptmaker(char *lfn, char *link, char *filenamedq)
+{
+  int retCode, filesize;
+  char command[MAX_LENGTH_FILENAME + 1], filename[MAX_LENGTH_FILENAME + 1];
+  char stringdq[MAX_LENGTH_FILENAME + 1], filenamescratch[MAX_LENGTH_FILENAME + 1];
+  FILE *scriptfile;
+
+  //setreuid(TILEBEAM_UID, TILEBEAM_UID);
+  //setregid(TILEBEAM_GID, TILEBEAM_GID);
+
+  memset(command, '\0', MAX_LENGTH_FILENAME + 1);
+  memset(filename, '\0', MAX_LENGTH_FILENAME + 1);
+  memset(filenamescratch, '\0', MAX_LENGTH_FILENAME + 1);
+	  
+  strcpy(filenamescratch, WGET_SCRIPTS);
+  strcat(filenamescratch, lfn);
+  strcat(filenamescratch, ".sh");
+	
+  strcpy(filename, lfn);
+  strcat(filename, ".sh");
+  
+  //check if the script is on scratch directory
+  if ((scriptfile=fopen(filenamescratch,"r"))!=NULL)
+    {
+    printf("Script available in scratch.<br>\n");
+    fclose(scriptfile);
+	snprintf (command, MAX_LENGTH_COMMAND, "%s%s.sh", WGET_SCRIPTS, lfn);
+	ctbTouchFile(command);
+    return(OK);
+    }
+  else
+    {
+	//snprintf (command, MAX_LENGTH_FILENAME, "cp scriptmodel.sh %s", filename);
+	//printf("command = %s\n", command);
+    //retCode = system (command);
+
+	//get filesize
+
+	filesize = lfnsize(lfn, filenamedq);
+
+	if(filesize == -7)
+		return(7);
+	if(filesize == -2)
+		return(2);
+	//printf("filesize = %i<br>\n", filesize);
+	/*
+	if ((scriptfile=fopen(filename,"w"))==NULL)
+      {
+      printf("Erro na abertura do arquivo %s ou arquivo inexistente.\n", filename);
+      return(2);
+      }
+    */
+
+    snprintf (command, MAX_LENGTH_FILENAME, "cp scriptmodel.sh %s", filename);
+	//printf("command = %s\n", command);
+    retCode = system (command);
+
+	if ((scriptfile=fopen(filename,"a"))==NULL)
+        {
+        printf("Erro na abertura do arquivo %s ou arquivo inexistente.\n", filename);
+        return(2);
+        }
+	  
+	  //if [ $available -gt 600000 ]
+        //then
+        //grid-proxy-init
+      memset(stringdq, '\0', MAX_LENGTH_FILENAME + 1);
+	  snprintf (stringdq, MAX_LENGTH_FILENAME, "if [ $available -gt %i ]\n  then", filesize);
+	  fprintf(scriptfile, "%s\n", stringdq);
+
+	  memset(stringdq, '\0', MAX_LENGTH_FILENAME + 1);
+	  snprintf (stringdq, MAX_LENGTH_FILENAME, "  wget -c %s", link);
+	  fprintf(scriptfile, "%s\n", stringdq);
+
+	  //else
+        //echo 'You do not have space disk for transfering x kb'
+      //fi
+      memset(stringdq, '\0', MAX_LENGTH_FILENAME + 1);
+	  snprintf (stringdq, MAX_LENGTH_FILENAME, "else\n  echo 'You do not have space disk for transfering %i kb'\nfi", filesize);
+	  fprintf(scriptfile, "%s\n", stringdq);
+	  
+	  fclose(scriptfile);
+
+    /*
+	snprintf (stringdq, MAX_LENGTH_FILENAME, "wget -c %s", link);
+	fprintf(scriptfile, "%s\n", stringdq);
+	fclose(scriptfile);
+    */
+
+	memset(command, '\0', MAX_LENGTH_FILENAME + 1);
+	snprintf (command, MAX_LENGTH_FILENAME, "mv %s %s", filename, WGET_SCRIPTS);
+	//printf("Command move = %s<br>\n", command);
+    retCode = system (command);
+   
+    return(OK);
+	}
+}
+//int dc2_wgetscriptmaker(char *lfn, char *link, , char *filenamedq)
+
+//int dc2_dqscriptmaker(char *lfn, char *filenamedq)
+int dc2_dqscriptmaker(char *lfn, char *filenamedq)
+{
+  int retCode, filesize;
+  char command[MAX_LENGTH_FILENAME + 1], filename[MAX_LENGTH_FILENAME + 1];
+  char stringdq[MAX_LENGTH_FILENAME + 1], filenamescratch[MAX_LENGTH_FILENAME + 1];
+  FILE *scriptfile;
+
+  //setreuid(TILEBEAM_UID, TILEBEAM_UID);
+  //setregid(TILEBEAM_GID, TILEBEAM_GID);
+
+  memset(command, '\0', MAX_LENGTH_FILENAME + 1);
+  memset(filename, '\0', MAX_LENGTH_FILENAME + 1);
+  memset(filenamescratch, '\0', MAX_LENGTH_FILENAME + 1);
+	  
+  strcpy(filenamescratch, DC2_SCRIPTS);
+  strcat(filenamescratch, lfn);
+  strcat(filenamescratch, ".sh");
+	
+  strcpy(filename, lfn);
+  strcat(filename, ".sh");
+
+  //check if the script is on scratch directory
+  if ((scriptfile=fopen(filenamescratch,"r"))!=NULL)
+    {
+    printf("Script available in scratch.<br>\n");
+    fclose(scriptfile);
+    return(0);
+    }
+  else
+	{
+    filesize = lfnsize(lfn, filenamedq);
+
+	if(filesize == -7)
+		return(7);
+	if(filesize == -2)
+		return(2);
+	//printf("filesize = %i<br>\n", filesize);
+
+	snprintf (command, MAX_LENGTH_FILENAME, "cp scriptmodel.sh %s", filename);
+	//printf("command = %s\n", command);
+    retCode = system (command);
+
+	if ((scriptfile=fopen(filename,"a"))==NULL)
+      {
+      printf("Erro na abertura do arquivo %s ou arquivo inexistente.\n", filename);
+      return(2);
+      }
+	  
+	//if [ $available -gt 600000 ]
+      //then
+      //grid-proxy-init
+    memset(stringdq, '\0', MAX_LENGTH_FILENAME + 1);
+	snprintf (stringdq, MAX_LENGTH_FILENAME, "if [ $available -gt %i ]\n  then\n  grid-proxy-init", filesize);
+	fprintf(scriptfile, "%s\n", stringdq);
+
+	memset(stringdq, '\0', MAX_LENGTH_FILENAME + 1);
+	snprintf (stringdq, MAX_LENGTH_FILENAME, "  %s get '%s' --copy --auto", DQ, lfn);
+	fprintf(scriptfile, "%s\n", stringdq);
+
+	//else
+      //echo 'You do not have space disk for transfering x kb'
+    //fi
+    memset(stringdq, '\0', MAX_LENGTH_FILENAME + 1);
+	snprintf (stringdq, MAX_LENGTH_FILENAME, "else\n  echo 'You do not have space disk for transfering %i kb'\nfi", filesize);
+	fprintf(scriptfile, "%s\n", stringdq);
+	  
+	fclose(scriptfile);
+
+	memset(command, '\0', MAX_LENGTH_FILENAME + 1);
+	snprintf (command, MAX_LENGTH_FILENAME, "mv %s %s", filename, DC2_SCRIPTS);
+	//printf("Command move = %s<br>\n", command);
+    retCode = system (command);
+   
+    return(0);
+	}//else
+
+
+}
+//int dc2_dqscriptmaker(char *lfn, char *filenamedq)
+
+//int dc2_gridftpscriptmaker(char *lfn, char *value, char *link)
+int dc2_gridftpscriptmaker(char *lfn, char *value, char *filenamedq)
+{
+
+  int retCode, filesize, contador, i, lenght, indice;
+  char command[MAX_LENGTH_FILENAME + 1], filename[MAX_LENGTH_FILENAME + 1];
+  char stringdq[MAX_LENGTH_FILENAME + 1], filenamescratch[MAX_LENGTH_FILENAME + 1];
+  char valuegsiftp[MAX_LENGTH_FILENAME + 1], pontobarras[MAX_LENGTH_FILENAME + 1];
+  FILE *scriptfile;
+
+  setreuid(TILEBEAM_UID, TILEBEAM_UID);
+  setregid(TILEBEAM_GID, TILEBEAM_GID);
+
+  memset(command, '\0', MAX_LENGTH_FILENAME + 1);
+  memset(filename, '\0', MAX_LENGTH_FILENAME + 1);
+  memset(filenamescratch, '\0', MAX_LENGTH_FILENAME + 1);
+  memset(valuegsiftp, '\0', MAX_LENGTH_FILENAME + 1);
+
+  strcpy(filenamescratch, DC2_SCRIPTSNODQ);
+  strcat(filenamescratch, lfn);
+  strcat(filenamescratch, ".sh");
+
+  strcpy(filename, lfn);
+  strcat(filename, ".sh");
+
+	//check if the script is on scratch directory
+	/*
+	if ((scriptfile=fopen(filenamescratch,"r"))!=NULL)
+      {
+      printf("Script available in scratch.<br>\n");
+	  fclose(scriptfile);
+      exit(0);
+      }
+	  */
+    /*else
+	{*/
+  filesize = lfnsize(lfn, filenamedq);
+
+  if((filesize == 7) || (filesize == 5))
+	return(7);
+
+	  //printf("filesize = %i<br>\n", filesize);
+
+  snprintf (command, MAX_LENGTH_FILENAME, "cp scriptmodel.sh %s", filename);
+  //printf("command = %s\n", command);
+  retCode = system (command);
+
+  if ((scriptfile=fopen(filename,"a"))==NULL)
+    {
+    printf("Erro na abertura do arquivo %s ou arquivo inexistente.\n", filename);
+    return(2);
+    }
+
+  //if [ $available -gt 600000 ]
+   //then
+   //export GLOBUS_LOCATION=/opt/globus
+   ///opt/globus/etc/globus-user-env.sh
+   //grid-proxy-init
+  memset(stringdq, '\0', MAX_LENGTH_FILENAME + 1);
+  snprintf (stringdq, MAX_LENGTH_FILENAME, "if [ $available -gt %i ]\n  then\n  export GLOBUS_LOCATION=/opt/globus\n  . /opt/globus/etc/globus-user-env.sh\n  grid-proxy-init", filesize);
+  fprintf(scriptfile, "%s\n", stringdq);
+
+  strcpy(valuegsiftp, "gsiftp://");
+  lenght = strlen(value);	  
+  for(contador=0; contador < (lenght - 5); contador++)
+    {
+      pontobarras[0]=value[contador];
+      pontobarras[1]=value[contador + 1];
+	  pontobarras[2]=value[contador + 2];
+	  pontobarras[3]=0;
+	  if (!strcmp(pontobarras, "://"))
+	    indice=contador;
+	}
+
+  i=9;
+  for(contador=(indice + 3); contador < lenght; contador++)
+	{	
+    valuegsiftp[i]=value[contador];
+    i++;
+	}
+
+  snprintf (stringdq, MAX_LENGTH_FILENAME, "  globus-url-copy %s file:///tmp/%s", valuegsiftp, lfn);
+  fprintf(scriptfile, "%s\n", stringdq);
+	  
+  //else
+    //echo 'You do not have space disk for transfering x kb'
+  //fi
+  memset(stringdq, '\0', MAX_LENGTH_FILENAME + 1);
+  snprintf (stringdq, MAX_LENGTH_FILENAME, "else\n  echo 'You do not have space disk for transfering %i kb'\nfi", filesize);
+  fprintf(scriptfile, "%s\n", stringdq);
+
+  fclose(scriptfile);
+
+  memset(command, '\0', MAX_LENGTH_FILENAME + 1);
+  snprintf (command, MAX_LENGTH_FILENAME, "mv %s %s", filename, DC2_SCRIPTSNODQ);
+  //printf("Command move = %s<br>\n", command);
+  retCode = system (command);
+
+  return(0);
+  //}
+
+}
+//int dc2_gridftpscriptmaker(char *lfn, char *value, char *filenamedq)

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/css" href="blank.css"?>
+<macros>
+
+	<macro>
+		<name>CRCandBCID</name>
+		<title>CRC and BCID</title>
+		<filename>checkCRC_DMU_BCID.cpp</filename>
+		<params>
+			<param provided="system">runNumber</param>
+			<param provided="default">filename</param>
+			<param provided="system">runType</param>
+		</params>
+		<results>
+			<result></result>
+			<result></result>
+			<result></result>
+			<result></result>
+		</results>
+		<runTypes>
+			<runType>Ped</runType>
+			<runType>CIS</runType>
+			<runType>MonoCis</runType>
+			<runType>Led</runType>
+			<runType>Phys</runType>
+			<runType>monogain</runType>
+			<runType>bigain</runType>
+		</runTypes>
+	</macro>
+
+	<macro>
+		<name>PulseHeight</name>
+		<title>Pulse Height</title>
+		<filename>checkPulseHeight.cpp</filename>
+		<params>
+			<param provided="system">runNumber</param>
+			<param provided="default">filename</param>
+			<param provided="system">runType</param>
+		</params>
+		<results>
+			<result></result>
+			<result></result>
+			<result></result>
+			<result></result>
+		</results>
+		<runTypes>
+			<runType>CIS</runType>
+		</runTypes>
+	</macro>
+
+	<macro>
+		<name>deadChannels</name>
+		<title>Dead Channels</title>
+		<filename>checkDeadChannels.cpp</filename>
+		<params>
+			<param provided="system">runNumber</param>
+			<param provided="default">filename</param>
+			<param provided="system">runType</param>
+		</params>
+		<results>
+			<result></result>
+			<result></result>
+			<result></result>
+			<result></result>
+		</results>
+		<runTypes>
+			<runType>Led</runType>
+			<runType>MonoCis</runType>
+		</runTypes>
+	</macro>
+
+	<macro>
+		<name>baseline</name>
+		<title>Baseline</title>
+		<filename>checkBaseline.cpp</filename>
+		<params>
+			<param provided="system">runNumber</param>
+			<param provided="default">filename</param>
+			<param provided="system">runType</param>
+		</params>
+		<results>
+			<result></result>
+			<result></result>
+			<result></result>
+			<result></result>
+		</results>
+		<runTypes>
+			<runType>Led</runType>
+			<runType>Phys</runType>
+			<runType>MonoCis</runType>
+			<runType>monogain</runType>
+		</runTypes>
+	</macro>
+
+	<macro>
+		<name>cnoise</name>
+		<title>Coherent Noise</title>
+		<filename>cnoise.C</filename>
+		<params>
+			<param provided="system">runNumber</param>
+			<param provided="default">filename</param>
+			<param provided="system">runType</param>
+			<param provided="user" prompt="Please, enter a module name">module</param>
+			<param provided="user" prompt="Please, enter the max number of events" defaultValue="10000">maxEvents</param>
+		</params>
+		<results>
+			<result></result>
+			<result></result>
+			<result></result>
+			<result></result>
+		</results>
+		<runTypes>
+			<runType>Ped</runType>
+		</runTypes>
+	</macro>
+
+	<macro>
+		<name>checkCalibrationData</name>
+		<title>TileC Step</title>
+		<filename>checkCalibrationData.cpp</filename>
+		<params>
+			<param provided="system">runNumber</param>
+			<param provided="default">filename</param>
+			<param provided="system">runType</param>
+			<param provided="user" prompt="Please, enter a module name">module</param>
+		</params>
+		<results>
+			<result></result>
+			<result></result>
+			<result></result>
+			<result></result>
+		</results>
+		<runTypes>
+			<runType>Ped</runType>
+			<runType>MonoCis</runType>
+		</runTypes>
+	</macro>
+</macros>
+

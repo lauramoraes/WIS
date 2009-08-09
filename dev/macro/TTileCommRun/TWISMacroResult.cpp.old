@@ -1,0 +1,341 @@
+#define TWISMacroResult_cxx
+
+#include "TWISMacroResult.h"
+
+#ifdef TWISMacroResult_cxx
+
+
+TWISResult::TWISResult(TString title)
+{
+	mTitle = title;
+}
+
+void TWISResult::setTag(TString tag)
+{
+	mTag = tag;
+}
+
+TString TWISResult::getTag()
+{
+	return(mTag);
+}
+
+TString TWISResult::getTitle()
+{
+	return(mTitle);
+}
+
+
+TWISPlot::TWISPlot(TString title, TString fileName) : TWISResult::TWISResult(title)
+{
+	mFileName = fileName;
+	setTag("plot");
+}
+
+TString TWISPlot::getFileName()
+{
+	return(mFileName);
+}
+
+
+TWISTable::TWISTable(TString title, TString data) : TWISResult::TWISResult(title)
+{
+	mData = data;
+	setTag("table");
+}
+
+TString TWISTable::getTable()
+{
+	return(mData);
+}
+
+
+TWISValue::TWISValue(TString title, TString data) : TWISResult::TWISResult(title)
+{
+	mData = data;
+	setTag("value");
+}
+TWISValue::TWISValue(TString title, Int_t data) : TWISResult::TWISResult(title)
+{
+	mData = ""; mData += data;
+	setTag("value");
+}
+TWISValue::TWISValue(TString title, Float_t data) : TWISResult::TWISResult(title)
+{
+	mData = ""; mData += data;
+	setTag("value");
+}
+TWISValue::TWISValue(TString title, Double_t data) : TWISResult::TWISResult(title)
+{
+	mData = ""; mData += data;
+	setTag("value");
+}
+TWISValue::TWISValue(TString title, size_t data) : TWISResult::TWISResult(title)
+{
+	mData = ""; mData += data;
+	setTag("value");
+}
+TWISValue::TWISValue(TString title, Long64_t data) : TWISResult::TWISResult(title)
+{
+	mData = ""; mData += data;
+	mData = data;
+	setTag("value");
+}
+
+TString TWISValue::getValue()
+{
+	return(mData);
+}
+
+
+TWISLink::TWISLink(TString title, TString href) : TWISResult::TWISResult(title)
+{
+	mHref = href;
+	setTag("link");
+}
+TString TWISLink::getHref()
+{
+	return(mHref);
+}
+
+
+TWISMacroResult::TWISMacroResult()
+{
+	mNumOfResults = 0;
+	mNumOfParams = 0;
+	mNumOfErrors = 0;
+	mNumOfWarnings = 0;
+	mNumOfURLs = 0;
+	mMacroName = "";
+	mMacroVersion = "";
+}
+
+
+void TWISMacroResult::setMacroName(TString macroName)
+{
+	mMacroName = macroName;
+}
+
+
+void TWISMacroResult::setMacroVersion(TString macroVersion)
+{
+	mMacroVersion = macroVersion;
+}
+
+
+void TWISMacroResult::setMacroNameVersion(TString macroName, TString macroVersion)
+{
+	mMacroName = macroName;
+	mMacroVersion = macroVersion;
+}
+
+
+void TWISMacroResult::setParameter(TString title, TString value)
+{
+	mParamsTitles.push_back(title);
+	mParamsValues.push_back(value);
+	mNumOfParams++;
+
+}
+void TWISMacroResult::setParameter(TString title, Int_t value)
+{
+	mParamsTitles.push_back(title);
+	TString aux = ""; aux += value;
+	mParamsValues.push_back(aux);
+	mNumOfParams++;
+}
+void TWISMacroResult::setParameter(TString title, Float_t value)
+{
+	mParamsTitles.push_back(title);
+	TString aux = ""; aux += value;
+	mParamsValues.push_back(aux);
+	mNumOfParams++;
+}
+void TWISMacroResult::setParameter(TString title, Double_t value)
+{
+	mParamsTitles.push_back(title);
+	TString aux = ""; aux += value;
+	mParamsValues.push_back(aux);
+	mNumOfParams++;
+}
+void TWISMacroResult::setParameter(TString title, size_t value)
+{
+	mParamsTitles.push_back(title);
+	TString aux = ""; aux += value;
+	mParamsValues.push_back(aux);
+	mNumOfParams++;
+}
+void TWISMacroResult::setParameter(TString title, Long64_t value)
+{
+	mParamsTitles.push_back(title);
+	TString aux = ""; aux += value;
+	mParamsValues.push_back(aux);
+	mNumOfParams++;
+}
+
+
+void TWISMacroResult::addPlot(TString title, TString fileName)
+{
+	TWISPlot *aux = new TWISPlot(title, fileName);
+	mResults.push_back(aux);
+	mNumOfResults++;
+}
+
+
+void TWISMacroResult::addTable(TString title, TString table)
+{
+	TWISTable *aux = new TWISTable(title, table);
+	mResults.push_back(aux);
+	mNumOfResults++;
+}
+
+
+void TWISMacroResult::addValue(TString title, TString value)
+{
+	TWISValue *aux = new TWISValue(title, value);
+	mResults.push_back(aux);
+	mNumOfResults++;
+}
+void TWISMacroResult::addValue(TString title, Int_t value)
+{
+	TWISValue *aux = new TWISValue(title, value);
+	mResults.push_back(aux);
+	mNumOfResults++;
+}
+void TWISMacroResult::addValue(TString title, Float_t value)
+{
+	TWISValue *aux = new TWISValue(title, value);
+	mResults.push_back(aux);
+	mNumOfResults++;
+}
+void TWISMacroResult::addValue(TString title, Double_t value)
+{
+	TWISValue *aux = new TWISValue(title, value);
+	mResults.push_back(aux);
+	mNumOfResults++;
+}
+void TWISMacroResult::addValue(TString title, size_t value)
+{
+	TWISValue *aux = new TWISValue(title, value);
+	mResults.push_back(aux);
+	mNumOfResults++;
+}
+void TWISMacroResult::addValue(TString title, Long64_t value)
+{
+	TWISValue *aux = new TWISValue(title, value);
+	mResults.push_back(aux);
+	mNumOfResults++;
+}
+
+
+void TWISMacroResult::addLink(TString title, TString href)
+{
+	TWISLink *aux = new TWISLink(title, href);
+	mResults.push_back(aux);
+	mNumOfResults++;
+}
+
+
+void TWISMacroResult::addURLToPage(TString URL)
+{
+	mURLs.push_back(URL);
+	mNumOfURLs++;
+}
+
+
+void TWISMacroResult::addError(TString errorMsg)
+{
+	mErrorMsgs.push_back(errorMsg);
+	mNumOfErrors++;
+}
+
+
+void TWISMacroResult::addWarning(TString warningMsg)
+{
+	mWarnings.push_back(warningMsg);
+	mNumOfWarnings++;
+}
+
+
+void TWISMacroResult::out()
+{
+	Int_t i;
+
+	cout << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\" ?>" << endl;
+	cout << "<!DOCTYPE xml [<!ENTITY nbsp \"&#160;\">]>" << endl;
+	cout << "<?xml-stylesheet type=\"text/css\" href=\"blank.css\" ?>" << endl;
+
+	cout << "<analysis>" << endl;
+	
+	cout << "	<macroName>" << mMacroName << "</macroName>" << endl;
+	if (mMacroVersion != "")
+		cout << "	<macroVersion>" << mMacroVersion << "</macroVersion>" << endl;
+
+	for (i = 0; i < mNumOfErrors; i++)
+	{
+		cout << "	<error>" << mErrorMsgs.at(i) << "</error>" << endl;
+	}
+
+	for (i = 0; i < mNumOfWarnings; i++)
+	{
+		cout << "	<warning>" << mWarnings.at(i) << "</warning>" << endl;
+	}
+
+	for (i = 0; i < mNumOfURLs; i++)
+	{
+		cout << "	<URL><![CDATA[" << mURLs.at(i) << "]]></URL>" << endl;
+	}
+
+	cout << "	<parameters>" << endl;
+	for (i = 0; i < mNumOfParams; i++)
+	{
+		cout << "		<parameter>" << endl;
+		cout << "			<title>" << mParamsTitles.at(i) << "</title>" << endl;
+		cout << "			<value>" << mParamsValues.at(i) << "</value>" << endl;
+		cout << "		</parameter>" << endl;
+	}
+	cout << "	</parameters>" << endl;
+
+	cout << "	<results>" << endl;
+	cout << "		<title></title>" << endl;
+	for (i = 0; i < mNumOfResults; i++)
+	{
+		cout << "		<result type=\"" << mResults[i]->getTag() << "\">" << endl;
+		cout << "			<title>" << mResults.at(i)->getTitle() << "</title>" << endl;
+		if (mResults.at(i)->getTag() == "plot")
+		{
+			cout << "			<fileName>" << ((TWISPlot*)mResults.at(i))->getFileName() << "</fileName>" << endl;
+		}
+		else
+		if (mResults.at(i)->getTag() == "table")
+		{
+			cout << "			<data><![CDATA[" << ((TWISTable*)mResults.at(i))->getTable() << "]]></data>" << endl;
+			//cout << "			<data>" << ((TWISTable*)mResults.at(i))->getTable() << "</data>" << endl;
+		}
+		else
+		if (mResults.at(i)->getTag() == "value")
+		{
+			cout << "			<data>" << ((TWISValue*)mResults.at(i))->getValue() << "</data>" << endl;
+		}
+		else
+		if (mResults.at(i)->getTag() == "link")
+		{
+			cout << "			<href><![CDATA[" << ((TWISLink*)mResults.at(i))->getHref() << "]]></href>" << endl;
+		}
+
+		cout << "		</result>" << endl;
+	}
+	cout << "	</results>" << endl;
+	cout << "</analysis>" << endl << endl;
+
+}
+
+
+TWISMacroResult::~TWISMacroResult()
+{
+
+}
+
+
+#endif // #ifdef TWISMacroResult_cxx
+
