@@ -44,19 +44,28 @@
 			passthru("./wisEraseLines $htmlfilename", $retCode);
 			echo "<html>";
 			echo "<body>";
-			$con = mysql_connect("atlasdev1.cern.ch", "lodi", "cOAnAd26")
+			/*$con = mysql_connect("atlasdev1.cern.ch", "lodi", "cOAnAd26")
 					or die("cannot connect to database server :(");
-			mysql_select_db("tbanalysis", $con);
+					mysql_select_db("tbanalysis", $con);*/
+			$con = ocilogon("ATLAS_TILECOM", "X#ep!zu75", "INTR")
+			or die("cannot connect to database server INTR :(");
 			$select = "SELECT * FROM wisIntegratorMacro WHERE filename='$filename".".root';"; //LIMIT 0,10";
-			$res = mysql_query($select)
-					or die("query failed :(");
-			$nrows = mysql_num_rows($res);
-			$nfields = mysql_num_fields($res);
+			/*$res = mysql_query($select)
+					or die("query failed :(");*/
+			$res = ociparse($con, $select);
+			ociexecute($res, OCI_DEFAULT) or die("FAILURE: " . ocierror($res));
+			/*$nrows = mysql_num_rows($res);
+			$nfields = mysql_num_fields($res);*/
 			$content = file_get_contents($htmlfilename);
 			$content = addslashes($content);
 			$select = "UPDATE wisIntegratorMacro SET results='$content' WHERE filename='$filename".".root';";
-			$res = mysql_query($select);
-			mysql_close();
+			//$res = mysql_query($select);
+			$res = ociparse($con, $select);
+			ociexecute($res, OCI_DEFAULT) or die("FAILURE: " . ocierror($res));
+			//mysql_close();
+			OCIFreeStatement($res);
+			ocilogoff($con);
+			
 			echo "<script>";
 			echo "	var td = parent.document.getElementById('$tdId');";
 			echo "var b = td.getElementsByTagName('B')[0];";

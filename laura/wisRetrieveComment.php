@@ -19,9 +19,11 @@ function fixoutput($str)
 }
 
 	//Connect Tilecomm Database
-	$mysqlCon = mysql_connect("atlasdev1.cern.ch","lodi","cOAnAd26")
+	$con = ocilogon("ATLAS_TILECOM", "X#ep!zu75", "INTR")
+			or die("cannot connect to database server INTR :(");
+	/*$mysqlCon = mysql_connect("atlasdev1.cern.ch","lodi","cOAnAd26")
         	or die("cannot connect to database server atlasdev1 :(");
-	mysql_select_db("tbanalysis", $mysqlCon);
+	mysql_select_db("tbanalysis", $mysqlCon);*/
 	
 	//Taking the modules
 	$runNumber = "";
@@ -44,8 +46,11 @@ function fixoutput($str)
 	$selectComment .= "WHERE tcaRun.runNumber=$runNumber ";
 	$selectComment .= "AND tcaRun.idAtlasId=idatlas.id AND idatlas.code='$modulePrefix' ";
 	$selectComment .= "AND tcaRun.idTestId=testsID.id AND testsID.testID=$moduleNumber;";
-	$resComment = mysql_query($selectComment,$mysqlCon) or die("Failure: " . mysql_error());
-	$rowComment = mysql_fetch_row($resComment);
+	//$resComment = mysql_query($selectComment,$mysqlCon) or die("Failure: " . mysql_error());
+	$resComment = ociparse($con, $selectComment);
+	ociexecute($resComment, OCI_DEFAULT) or die("FAILURE: " . ocierror($resComment));
+	//$rowComment = mysql_fetch_row($resComment);
+	ocifetchinto($resComment, $rowComment, OCI_NUM)
 	$comment="";
 	if($rowComment!=false && $rowComment[0]!="")
 		$comment=addcslashes((rtrim($rowComment[0])), "\"@\0..\32");
@@ -153,8 +158,10 @@ function fixoutput($str)
 
 	div.appendChild(main);
 	<?php
-	mysql_free_result($resComment);
-	mysql_close($mysqlCon);
+	/*mysql_free_result($resComment);
+	mysql_close($mysqlCon);*/
+	OCIFreeStatement($resComment);
+	ocilogoff($con);
 ?>
 
 </script>

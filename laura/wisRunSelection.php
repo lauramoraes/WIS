@@ -182,87 +182,150 @@
 
 		$con = mysql_connect("pcata007","reader","")
 			or die("cannot connect to database server pcata007 :(");
+			
+		$con2 = ocilogon("ATLAS_TILECOM", "X#ep!zu75", "INTR")
+			or die("cannot connect to database server INTR :(");
 
-		$con2 = mysql_connect("voatlas15.cern.ch","lodi","cOAnAd26")
-			or die("cannot connect to database server voatlas15.cern.ch :(");
+		/*$con2 = mysql_connect("voatlas15.cern.ch","lodi","cOAnAd26")
+			or die("cannot connect to database server voatlas15.cern.ch :(");*/
 // Selecting which runs have plots
 
-		mysql_select_db("tbanalysis", $con2);
+		//mysql_select_db("tbanalysis", $con2);
 
-	/************* Taking Runs with plots*****************/
 		$selectPlot="SELECT tcaRun.id as runId , tcaRun.runNumber as runNumber , tcaRunType.id , tcaRunType.name as runType , idatlas.id , idatlas.code as code , tcaRun.ModuleNumber as idAtlas FROM tcaRun ,  tcaRunType , idatlas WHERE idatlas.id = tcaRun.idAtlasId AND tcaRunType.id = tcaRun.runTypeId AND tcaRun.hasT5Plot='1'";
-		$resPlots = mysql_query($selectPlot, $con2)
+		$resPlots = ociparse($con2, $selectPlot)
+			or die("query failed in resPlots");
+  	ociexecute($resPlots, OCI_DEFAULT)
+  		or die("query failed in resPlots execute");
+  	ocisetprefetch($resPlots, 10000);
+		/*$resPlots = mysql_query($selectPlot, $con2)
 			or die("query failed :(");
-		$countRunPlot = mysql_num_rows($resPlots);
+		$countRunPlot = mysql_num_rows($resPlots);*/
 		$runPlotArray = array();
-		for($indexRunPlots=0 ; $indexRunPlots<$countRunPlot; $indexRunPlots++)
+		/*for($indexRunPlots=0 ; $indexRunPlots<$countRunPlot; $indexRunPlots++)
 		{
 			$runPlots= mysql_fetch_assoc($resPlots);
 			array_push($runPlotArray, $runPlots['runNumber']);
-		}
+		}*/
+		while (ocifetchinto($resPlots, $runPlots, OCI_ASSOC))
+		{
+    	array_push($runPlotArray, $runPlots["RUNNUMBER"]);
+    }
+   	OCIFreeStatement($resPlots);
 	/************* Taking Runs with OK Status*****************/
 		$selectStatus="SELECT tcaRun.id as runId , tcaRun.runNumber as runNumber , tcaRunType.id , tcaRunType.name as runType , idatlas.id , idatlas.code as code , tcaRun.ModuleNumber as idAtlas FROM tcaRun ,  tcaRunType , idatlas WHERE idatlas.id = tcaRun.idAtlasId AND tcaRunType.id = tcaRun.runTypeId AND tcaRun.statusCommentsId='1'";
-		$resStatus = mysql_query($selectStatus, $con2)
+		$resStatus = ociparse($con2, $selectStatus)
+			or die("query failed in resStatus 1");
+  	ociexecute($resStatus, OCI_DEFAULT)
+  		or die("query failed in resStatus execute 1");
+  	ocisetprefetch($resStatus, 10000);
+		/*$resStatus = mysql_query($selectStatus, $con2)
 			or die("query failed :(");
-		$countRunStatus = mysql_num_rows($resStatus);
+		$countRunStatus = mysql_num_rows($resStatus);*/
 		$runOKArray = array();
-		for($indexRunStatus=0 ; $indexRunStatus<$countRunStatus; $indexRunStatus++)
+		/*for($indexRunStatus=0 ; $indexRunStatus<$countRunStatus; $indexRunStatus++)
 		{
 			$runStatus= mysql_fetch_assoc($resStatus);
 			$runOKArray[]= $runStatus['runNumber'];
-		}
+		}*/
+		while (ocifetchinto($resStatus, $runStatus, OCI_ASSOC))
+		{
+    	$runOKArray[]=$runStatus["RUNNUMBER"];
+    }
+    OCIFreeStatement($resStatus);
 	/************* Taking Runs with SP Status*****************/
 		$selectStatus="SELECT tcaRun.id as runId , tcaRun.runNumber as runNumber , tcaRunType.id , tcaRunType.name as runType , idatlas.id , idatlas.code as code , tcaRun.ModuleNumber as idAtlas FROM tcaRun ,  tcaRunType , idatlas WHERE idatlas.id = tcaRun.idAtlasId AND tcaRunType.id = tcaRun.runTypeId AND tcaRun.statusCommentsId='2'";
-		$resStatus = mysql_query($selectStatus, $con2)
+		$resStatus = ociparse($con2, $selectStatus)
+			or die("query failed in resStatus 2");
+  	ociexecute($resStatus, OCI_DEFAULT)
+  		or die("query failed in resStatus execute 2");
+  	ocisetprefetch($resStatus, 10000);
+		/*$resStatus = mysql_query($selectStatus, $con2)
 			or die("query failed :(");
-		$countRunStatus = mysql_num_rows($resStatus);
+		$countRunStatus = mysql_num_rows($resStatus);*/
 		$runSPArray = array();
-		for($indexRunStatus=0 ; $indexRunStatus<$countRunStatus; $indexRunStatus++)
+		/*for($indexRunStatus=0 ; $indexRunStatus<$countRunStatus; $indexRunStatus++)
 		{
 			$runStatus= mysql_fetch_assoc($resStatus);
 			$runSPArray[]= $runStatus['runNumber'];
-		}
+		}*/
+		while (ocifetchinto($resStatus, $runStatus, OCI_ASSOC))
+		{
+    	$runSPArray[]= $runStatus["RUNNUMBER"];
+    }
+    OCIFreeStatement($resStatus);
 	/************* Taking Runs with Bad Status*****************/
 		$selectStatus="SELECT tcaRun.id as runId , tcaRun.runNumber as runNumber , tcaRunType.id , tcaRunType.name as runType , idatlas.id , idatlas.code as code , tcaRun.ModuleNumber as idAtlas FROM tcaRun ,  tcaRunType , idatlas WHERE idatlas.id = tcaRun.idAtlasId AND tcaRunType.id = tcaRun.runTypeId AND tcaRun.statusCommentsId='3'";
-		$resStatus = mysql_query($selectStatus, $con2)
+		$resStatus = ociparse($con2, $selectStatus)
+			or die("query failed in resStatus 3");
+  	ociexecute($resStatus, OCI_DEFAULT)
+  		or die("query failed in resStatus execute 3");
+  	ocisetprefetch($resStatus, 10000);
+		/*$resStatus = mysql_query($selectStatus, $con2)
 			or die("query failed :(");
-		$countRunStatus = mysql_num_rows($resStatus);
+		$countRunStatus = mysql_num_rows($resStatus);*/
 		$runBdArray = array();
-		for($indexRunStatus=0 ; $indexRunStatus<$countRunStatus; $indexRunStatus++)
+		/*for($indexRunStatus=0 ; $indexRunStatus<$countRunStatus; $indexRunStatus++)
 		{
 			$runStatus= mysql_fetch_assoc($resStatus);
 			$runBdArray[]=$runStatus['runNumber'];
-		}
+		}*/
+		while (ocifetchinto($resStatus, $runStatus, OCI_ASSOC))
+		{
+    	$runBdArray[]= $runStatus["RUNNUMBER"];
+    }
+    OCIFreeStatement($resStatus);
 	/************* Taking Runs with NA Status*****************/
 		$selectStatus="SELECT tcaRun.id as runId , tcaRun.runNumber as runNumber , tcaRunType.id , tcaRunType.name as runType , idatlas.id , idatlas.code as code , tcaRun.ModuleNumber as idAtlas FROM tcaRun ,  tcaRunType , idatlas WHERE idatlas.id = tcaRun.idAtlasId AND tcaRunType.id = tcaRun.runTypeId AND tcaRun.statusCommentsId='4'";
-		$resStatus = mysql_query($selectStatus, $con2)
+		$resStatus = ociparse($con2, $selectStatus)
+			or die("query failed in resStatus 4");
+  	ociexecute($resStatus, OCI_DEFAULT)
+  		or die("query failed in resStatus execute 4");
+  	ocisetprefetch($resStatus, 10000);
+		/*$resStatus = mysql_query($selectStatus, $con2)
 			or die("query failed :(");
-		$countRunStatus = mysql_num_rows($resStatus);
+		$countRunStatus = mysql_num_rows($resStatus);*/
 		$runNAArray = array();
-		for($indexRunStatus=0 ; $indexRunStatus<$countRunStatus; $indexRunStatus++)
+		/*for($indexRunStatus=0 ; $indexRunStatus<$countRunStatus; $indexRunStatus++)
 		{
 			$runStatus= mysql_fetch_assoc($resStatus);
 			$runNAArray[]= $runStatus['runNumber'];
-		}
+		}*/
+		while (ocifetchinto($resStatus, $runStatus, OCI_ASSOC))
+		{
+    	$runNAArray[]= $runStatus["RUNNUMBER"];
+    }
+    OCIFreeStatement($resStatus);
 
 
 	/***********************Taki9ng Shifters********************/
 
-		$selectShifters="select tcaT5CommentsAuthors.ccid as ccid, tcaRun.runNumber as runNumber  from tcaT5CommentsAuthors, tcaRun where tcaT5CommentsAuthors.runId = tcaRun.id order by runNumber DESC;";
-		$resShifters = mysql_query($selectShifters, $con2)
+		$selectShifters="select tcaT5CommentsAuthors.ccid as ccid, tcaRun.runNumber as runNumber  from tcaT5CommentsAuthors, tcaRun where tcaT5CommentsAuthors.runId = tcaRun.id order by runNumber DESC";
+		$resShifters = ociparse($con2, $selectShifters)
+			or die("query failed in resShifters");
+  	ociexecute($resShifters, OCI_DEFAULT)
+  		or die("query failed in resShifters execute");
+  	ocisetprefetch($resShifters, 10000);
+		/*$resShifters = mysql_query($selectShifters, $con2)
 			or die("query failed :(");
-		$countRunShifters = mysql_num_rows($resShifters);
+		$countRunShifters = mysql_num_rows($resShifters);*/
 		$shiftersArray = array();
-		for($indexRunShifters=0 ; $indexRunShifters<$countRunShifters; $indexRunShifters++)
+		$shiftersRuns = array();
+		/*for($indexRunShifters=0 ; $indexRunShifters<$countRunShifters; $indexRunShifters++)
 		{
 			$runShifters= mysql_fetch_assoc($resShifters);
 			$shiftersRuns[]=$runShifters['runNumber'];
 			$shiftersArray[]= $runShifters['ccid'];
-		}
-
+		}*/
+		while (ocifetchinto($resShifters, $runShifters, OCI_ASSOC))
+		{
+    	$shiftersRuns[] = $runShifters["RUNNUMBER"];
+   		$shiftersArray[] = $runShifters["CCID"];
+    }
+		OCIFreeStatement($resShifters);
 
 //Accessing comminfo
-		mysql_select_db("commAnalysis", $con2);
+		//mysql_select_db("commAnalysis", $con2);
 
 		if (!isset($HTTP_POST_VARS["query"]))
 		{
@@ -602,7 +665,8 @@ for ($i = $start; $i <= $end; $i++)
 }
 
 mysql_close($con);
-mysql_close($con2);
+ocilogoff($con2);
+//mysql_close($con2);
 
 }?>
       </table>

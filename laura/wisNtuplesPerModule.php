@@ -59,35 +59,51 @@ $statusColor = array($barrel->white,$barrel->green,$barrel->orange,$barrel->red,
 if(isset($_GET["draw"]))
 {
 	//Connect Tilecomm Database
-	$mysqlCon = mysql_connect("voatlas15.cern.ch","lodi","cOAnAd26")
+	$con = ocilogon("ATLAS_TILECOM", "X#ep!zu75", "INTR")
+			or die("cannot connect to database server INTR :(");
+	/*$mysqlCon = mysql_connect("voatlas15.cern.ch","lodi","cOAnAd26")
 		or die("cannot connect to database server atlasdev1 :(");
-	mysql_select_db("tbanalysis", $mysqlCon);
+	mysql_select_db("tbanalysis", $mysqlCon);*/
 
 	//Creating commentsArray
 	// All module commented array
 	$selectComment="SELECT  tcaRun.idAtlasId, tcaRun.idTestId, idatlas.code, testsID.testID FROM tcaRun, idatlas, testsID WHERE tcaRun.runNumber=$runNumber AND (LTRIM(comments) IS NOT NULL AND LTRIM(comments) <> \"\") AND testsID.id=tcaRun.idTestId AND idatlas.id= tcaRun.idAtlasId ;";
-	$resComment = mysql_query($selectComment,$mysqlCon) or die("Failure: " . mysql_error());
+	$resComment = ociparse($con, $selectComment);
+	ociexecute($resComment, OCI_DEFAULT) or die("FAILURE: " . ocierror($resComment));
+	//$resComment = mysql_query($selectComment,$mysqlCon) or die("Failure: " . mysql_error());
 
-	$countComment=  mysql_num_rows($resComment);
-
+	//$countComment=  mysql_num_rows($resComment);
+	ocisetprefetch($resComment, 10000);
 	$commentsArray= array();
 
-	for($indexComment=0; $indexComment<$countComment;$indexComment++)
+	while (ocifetchinto($resComment, $rowComment, OCI_NUM))
 	{
-		$rowComment = mysql_fetch_row($resComment);
 		$tempString=  $rowComment[2];
 		if($rowComment[3]<10)
 			$tempString .= 0;
 		$tempString .= $rowComment[3];
 		array_push($commentsArray, $tempString);
-	}
-	mysql_free_result($resComment);
+  }
+  OCIFreeStatement($resComment);
+	
 	$selectComment="SELECT  tcaRun.idAtlasId, tcaRun.idTestId, idatlas.code, testsID.testID, tcaRun.statusCommentsId FROM tcaRun, idatlas, testsID WHERE tcaRun.runNumber=$runNumber AND testsID.id=tcaRun.idTestId AND idatlas.id= tcaRun.idAtlasId ;";
 	//echo "<H1>$selectComment</H1>";
-	$resComment = mysql_query($selectComment,$mysqlCon) or die("Failure: " . mysql_error());
-	$countComment=  mysql_num_rows($resComment);
+	$resComment = ociparse($con, $selectComment);
+	ociexecute($resComment, OCI_DEFAULT) or die("FAILURE: " . ocierror($resComment));
+	//$resComment = mysql_query($selectComment,$mysqlCon) or die("Failure: " . mysql_error());
+	//$countComment=  mysql_num_rows($resComment);
 	$statusCommentsArray = array();
-	for($indexComment=0; $indexComment<$countComment;$indexComment++)
+	while (ocifetchinto($resComment, $rowComment, OCI_NUM))
+	{
+		$tempString=  $rowComment[2];
+		if($rowComment[3]<10)
+			$tempString .= 0;
+		$tempString .= $rowComment[3];
+		$tempArray=  array($tempString => $rowComment[4]);
+		$statusCommentsArray= array_merge($statusCommentsArray, $tempArray);
+  }
+  OCIFreeStatement($resComment);
+	/*for($indexComment=0; $indexComment<$countComment;$indexComment++)
         {
                 $rowComment = mysql_fetch_row($resComment);
 		$tempString=  $rowComment[2];
@@ -97,10 +113,11 @@ if(isset($_GET["draw"]))
                 $tempArray=  array($tempString => $rowComment[4]);
                 //print_r($tempArray);echo"<BR>";
 		$statusCommentsArray= array_merge($statusCommentsArray, $tempArray);
-        }
+        }*/
 	//print_r($statusCommentsArray);
 
- 	mysql_close($mysqlCon);
+ 	//mysql_close($mysqlCon);
+ 	ocilogoff($con);
 
 	for($i=1;$i<=DEF_NUM_MODULES;$i++)
 	{

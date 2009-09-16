@@ -1,8 +1,11 @@
  	<?php	
-	$con = mysql_connect("atlasdev1.cern.ch","lodi","cOAnAd26")
+	/*$con = mysql_connect("atlasdev1.cern.ch","lodi","cOAnAd26")
                         or die("cannot connect to database server atlasdev1 :(");
 
-        mysql_select_db("tbanalysis", $con);
+        mysql_select_db("tbanalysis", $con);*/
+        
+     $con = ocilogon("ATLAS_TILECOM", "X#ep!zu75", "INTR")
+			or die("cannot connect to database server INTR :(");
 
 	
 
@@ -15,8 +18,8 @@
 		<script>
 		function chooseOrder( page)
 		{
-			if(document.getElementById("date").selected)
-				select= "date";
+			if(document.getElementById("date_").selected)
+				select= "date_";
 			else
 				select="moduleName";
 			 var url= 'wisIntegratorSelection.php?page='+page+'&select='+select;
@@ -99,8 +102,11 @@
 		   $start = ($page - 1) * $ROWS;
 		} 
 		$query = "select * from wisIntegratorMacro ";
-		$result = mysql_query($query);
-		$result_num = mysql_num_rows($result);
+		$result = ociparse($con, $query);
+		ociexecute($result, OCI_DEFAULT);
+  	ocisetprefetch($result, 10000);
+  	while(ocifetch($result));
+		$result_num = ocirowcount($result);
 		$pages_num = ceil($result_num / $ROWS);
 		echo "<font size='2' face='Arial'>";
 		if($start+$ROWS>$result_num)
@@ -110,14 +116,14 @@
 		$select = $_GET["select"];
 		echo" order by <select onChange=\"chooseOrder('$page');\">";
 		if(!$select)
-			$select ="date";
-		if($select=="date"){
-			echo"<option id='date' selected='selected'>Test Date</option>";
+			$select ="date_";
+		if($select=="date_"){
+			echo"<option id='date_' selected='selected'>Test Date</option>";
 			echo"<option id='moduleName' >Module Name</option>";
 		}
 		else{
 			echo"<option id='moduleName' selected='selected'>Module Name</option>";
-			echo"<option id='date' >Test Date</option>";
+			echo"<option id='date_' >Test Date</option>";
 		}
 		echo"</select><br />";
 		
@@ -151,14 +157,20 @@
 	<tr>
 	</tr>
 <?php
-		$query= "Select filename, moduleName, date, results, comments from wisIntegratorMacro  ORDER BY ".$select." DESC;";
-		$result= mysql_query($query);
+		$query= "Select filename, moduleName, date_, results, comments from wisIntegratorMacro ORDER BY ".$select." DESC";
+		$result = ociparse($con, $query);
+		ociexecute($result, OCI_DEFAULT);
+		ocisetprefetch($result, $ROWS);
+		//$result= mysql_query($query);
 		if(!$result)
 			echo"Invalid query: ".mysql_error();
-		mysql_data_seek($result, $start);
+		//mysql_data_seek($result, $start);
 		$end= ($start+$ROWS);
 		$i=$start;
-		while(($rrow = mysql_fetch_row($result)))
+		$j = 0;
+		for ($j=0; $j < $i; $j++)
+			ocifetch($result);
+		while((ocifetchinto($result, $rrow, OCI_NUM)))
 		{
 			$i++;
 			 if ($i % 2 == 0)
@@ -210,6 +222,13 @@
 		if($page != $page_num)
 			echo"<a href=\"wisIntegratorSelection.php?page=".($page+1)."&select=$select\" target=\"_self\"> Next</a> &gt;&gt;&nbsp;\n" ;
 		echo"</font>";
+		
+		/* FREE RESULTS*/ 	
+//mysql_free_result($resComment);
+OCIFreeStatement($result);
+/* close connection */
+//mysql_close($mysqlCon);
+ocilogoff($con);
 	?>
                 </div>
                 <!-- /Contents -->

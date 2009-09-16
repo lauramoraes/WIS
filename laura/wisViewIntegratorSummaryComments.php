@@ -15,9 +15,12 @@ while ( list($key, $val) = each($HTTP_POST_VARS))
 	if ( $key=="newComment" ) $newComment = $val;//getting newComment if exists
 }
 //connecting to mysql database
-$mysqlCon = mysql_connect("atlasdev1.cern.ch","lodi","cOAnAd26")
+/*$mysqlCon = mysql_connect("atlasdev1.cern.ch","lodi","cOAnAd26")
 or die("cannot connect to database server atlasdev1 :(");
-mysql_select_db("tbanalysis", $mysqlCon);
+mysql_select_db("tbanalysis", $mysqlCon);*/
+
+$con = ocilogon("ATLAS_TILECOM", "X#ep!zu75", "INTR")
+			or die("cannot connect to database server INTR :(");
 ?>
 
 <html>
@@ -41,8 +44,10 @@ mysql_select_db("tbanalysis", $mysqlCon);
 if($_POST["submit"])
 {
 	$selectComment  = "UPDATE wisIntegratorMacro SET comments='$newComment' ";
-	$selectComment .= "WHERE filename='$filename'; ";
-	mysql_query($selectComment, $mysqlCon) or die("FAILURE: " . mysql_error());
+	$selectComment .= "WHERE filename='$filename'";
+	//mysql_query($selectComment, $mysqlCon) or die("FAILURE: " . mysql_error());
+	$result = ociparse($con, $selectComment);
+	ociexecute($result, OCI_DEFAULT) or die("FAILURE: " . ocierror($result));
 	echo "\tSuccessful Operation\n";
 }
 else
@@ -69,10 +74,14 @@ echo "<br />";
 </tr>	
 <?php
 $i = 0;
-$selectComment = "SELECT comments, moduleName, date FROM wisIntegratorMacro ";
-$selectComment .= "WHERE filename='$filename'; ";
-$resComment = mysql_query($selectComment,$mysqlCon) or die("Failure: " . mysql_error());
-$rowComment = mysql_fetch_row($resComment);
+$selectComment = "SELECT comments, moduleName, date_ FROM wisIntegratorMacro ";
+$selectComment .= "WHERE filename='$filename'";
+$resComment = ociparse($con, $selectComment);
+ociexecute($resComment, OCI_DEFAULT) or die("FAILURE: " . ocierror($resComment));
+ocisetprefetch($resComment, 10000);
+//$resComment = mysql_query($selectComment,$mysqlCon) or die("Failure: " . mysql_error());
+//$rowComment = mysql_fetch_row($resComment);
+ocifetchinto($resComment, $rowComment, OCI_NUM);
 list($comment, $moduleName, $date)=$rowComment;
 if($rowComment!==false && $comment!=="")
 {
@@ -111,9 +120,12 @@ echo "\t\t<textarea name=\"newComment\" id=\"newComment\"cols=\"33\" rows=\"8\">
 </div>
 <?php
 /* FREE RESULTS*/ 	
-mysql_free_result($resComment);
+//mysql_free_result($resComment);
+OCIFreeStatement($resComment);
 /* close connection */
-mysql_close($mysqlCon);?>
+//mysql_close($mysqlCon);
+ocilogoff($con);
+?>
 <!-- Footer -->
 <div id="footer">
 &nbsp;Please <a href="mailto: alexfaria@lps.ufrj.br,amandama@lps.ufrj.br,Carmen.Maidantchik@cern.ch, Felipe.Grael@cern.ch,fferreira@lps.ufrj.br,Kaio.Galvao@cern.ch">send us</a> your comments and suggestions.

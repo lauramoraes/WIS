@@ -16,9 +16,11 @@
 	}
 
 	//connecting to mysql database
-	$mysqlCon = mysql_connect("atlasdev1.cern.ch","lodi","cOAnAd26")
+	/*$mysqlCon = mysql_connect("atlasdev1.cern.ch","lodi","cOAnAd26")
 				or die("cannot connect to database server atlasdev1 :(");
-	mysql_select_db("tbanalysis", $mysqlCon);
+	mysql_select_db("tbanalysis", $mysqlCon);*/
+	$con = ocilogon("ATLAS_TILECOM", "X#ep!zu75", "INTR")
+			or die("cannot connect to database server INTR :(");
 
 
 	$modulePrefix = substr($moduleName, 0, 3);
@@ -27,7 +29,11 @@
 	$selectComment .= "WHERE tcaRun.runNumber=$runNumber ";
 	$selectComment .= "AND tcaRun.idAtlasId=idatlas.id AND idatlas.code='$modulePrefix' ";
 	$selectComment .= "AND tcaRun.idTestId=testsID.id AND testsID.testID=$moduleNumber;";
-	mysql_query($selectComment, $mysqlCon) or die("FAILURE: " . mysql_error());
+	//mysql_query($selectComment, $mysqlCon) or die("FAILURE: " . mysql_error());
+	$res = ociparse($con, $selectComment);
+	ociexecute($res, OCI_DEFAULT) or die("FAILURE: " . ocierror($res));
+	OCIFreeStatement($res);
+	ocilogoff($con);
 
 
 ?>

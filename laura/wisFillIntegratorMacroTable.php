@@ -2,10 +2,12 @@
 <body>
 <?php	
 
-	$con = mysql_connect("atlasdev1.cern.ch","lodi","cOAnAd26")
+	/*$con = mysql_connect("atlasdev1.cern.ch","lodi","cOAnAd26")
                         or die("cannot connect to database server atlasdev1 :(");
 
-        mysql_select_db("tbanalysis", $con);
+        mysql_select_db("tbanalysis", $con);*/
+  $con = ocilogon("ATLAS_TILECOM", "X#ep!zu75", "INTR")
+			or die("cannot connect to database server INTR :(");
 	
 	$path = "/work/commissioning/team4/integrator/offline/";
 	$dir = opendir($path);
@@ -28,15 +30,25 @@
 		$completeDate = $completeDate.$hour[0].$hour[1].":";
 		$completeDate = $completeDate.$hour[2].$hour[3].":00";
 		$query=" SELECT * from wisIntegratorMacro where filename=\"".$filename."\";";
-		$result=mysql_query($query) or die('Invalid query: ' . mysql_error());
-		if(mysql_num_rows($result)==0)
+		//$result=mysql_query($query) or die('Invalid query: ' . mysql_error());
+		$result = ociparse($con, $query);
+		ociexecute($result, OCI_DEFAULT) or die("FAILURE: " . ocierror($result));
+		ocisetprefetch($result, 10000);
+		while(ocifetch($result));
+		//if(mysql_num_rows($result)==0)
+		if(ocirowcount($result)==0)
 		{
 			$query=" INSERT INTO wisIntegratorMacro (filename, date, moduleName) VALUES ('". $filename."', '".$completeDate."', '".$moduleName."');";
-			mysql_query($query) or die('Invalid query: ' . mysql_error());
+			//mysql_query($query) or die('Invalid query: ' . mysql_error());
+			$result = ociparse($con, $query);
+			ociexecute($result, OCI_DEFAULT) or die("FAILURE: " . ocierror($result));
 		}
 	}
 
 	closedir($dir);
+	
+	OCIFreeStatement($result);
+	ocilogoff($con);
 	
 ?>
 </body>

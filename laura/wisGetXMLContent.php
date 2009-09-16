@@ -7,9 +7,11 @@ reset($_POST);
 if (isset($_POST["filename"]))
 {
 	$filename = $_POST["filename"];
-	$con = mysql_connect("atlasdev1.cern.ch", "lodi", "cOAnAd26")
+	/*$con = mysql_connect("atlasdev1.cern.ch", "lodi", "cOAnAd26")
 			or die("cannot connect to database server :(");
-	mysql_select_db("tbanalysis", $con);
+	mysql_select_db("tbanalysis", $con);*/
+	$con = ocilogon("ATLAS_TILECOM", "X#ep!zu75", "INTR")
+			or die("cannot connect to database server INTR :(");
 	$select = "SELECT results FROM wisIntegratorMacro WHERE filename='$filename".".root';"; //LIMIT 0,10";	
 }
 else
@@ -27,12 +29,18 @@ else
 
 	mysql_select_db("commAnalysis", $con);
 	
+	//TABELA NAO EXISTE (??)
 	$select = "SELECT Data FROM wisMacroResult WHERE Run_Number=$runNumber AND Macro_Name='$macroName' AND Module_Name='$moduleName'";
+	
 }
-$res = mysql_query($select)
-	or die("query failed :(");
+/*$res = mysql_query($select)
+	or die("query failed :(");*/
+	
+$res = ociparse($con, $select);
+ociexecute($res, OCI_DEFAULT) or die("FAILURE: " . ocierror($res));
 
-$row = mysql_fetch_row($res);
+//$row = mysql_fetch_row($res);
+ocifetchinto($res, $row, OCI_NUM);
 
 $data = $row[0];
 
@@ -42,4 +50,6 @@ header("Content-Length: ".strlen($data)); // not sure if it works
 
 echo $data;
 
+OCIFreeStatement($res);
+ocilogoff($con);
 ?>

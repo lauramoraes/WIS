@@ -16,8 +16,10 @@
 	//echo "alert('Module: $moduleName');";
 	//echo "alert('Comment: $comment');";
 
-	mysql_connect("atlasdev1.cern.ch", "lodi", "tB2004ana")
-		or die("alert('cannot connect to database server :(');");
+	/*mysql_connect("atlasdev1.cern.ch", "lodi", "tB2004ana")
+		or die("alert('cannot connect to database server :(');");*/
+	$con = ocilogon("ATLAS_TILECOM", "X#ep!zu75", "INTR")
+			or die("cannot connect to database server INTR :(");
 
 	$modulePrefix = "LB" . $moduleName[0];
 	$moduleNumber = $moduleName[1] . $moduleName[2];
@@ -29,12 +31,16 @@
 
 	//echo "alert('$select');";	
 	
-	$res = mysql_db_query("tbanalysis", $select)
-		or die("alert('query failed :(');");
+	/*$res = mysql_db_query("tbanalysis", $select)
+		or die("alert('query failed :(');");*/
+	$res = ociparse($con, $select);
+	ociexecute($res, OCI_DEFAULT) or die("FAILURE: " . ocierror($res));
 
 	echo "alert('Comments succesfully updated!');";
 
-	mysql_close();
+	//mysql_close();
+	OCIFreeStatement($res);
+	ocilogoff($con);
 
 ?>
 
